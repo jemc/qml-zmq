@@ -1,0 +1,2 @@
+module org.jemc.qml.CZMQ
+plugin czmqplugin
