@@ -12,8 +12,10 @@ DESTDIR  = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 SRCDIR   = $$PWD/src
 BUILDDIR = $$PWD/build
 
+LIBS += -lzmq
+
 HEADERS += $$SRCDIR/czmqplugin.h    \
-           $$SRCDIR/zctx.h
+           $$SRCDIR/zmq_rep.h
 
 OBJECTS_DIR = $$BUILDDIR/.obj
 MOC_DIR     = $$BUILDDIR/.moc

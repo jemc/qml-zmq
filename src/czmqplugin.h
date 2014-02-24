@@ -14,6 +14,6 @@ class CZMQPlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri)
     {
-        qmlRegisterType<ZCtx>(uri, 1, 0, "ZCtx");
+        qmlRegisterType<ZMQ_Rep>(uri, 1, 0, "ZMQ_Rep");
     };
 };

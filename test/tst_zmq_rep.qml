@@ -7,12 +7,14 @@ import org.jemc.qml.CZMQ 1.0
 
 Item {
   TestCase {
-    id: test_zctx
-    name: "ZCtx"
+    id: test_rep
+    name: "ZMQ_Rep"
     
-    ZCtx { id: subject }
+    ZMQ_Rep { id: subject }
     
     function test_it() {
+      subject.bind("ipc:///tmp/test")
+      // subject.bind("whup://huh?")
       console.log(subject)
     }
   }
