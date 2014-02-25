@@ -18,7 +18,7 @@ class ZMQ_RepThread : public QThread
     void *context = zmq_ctx_new();
     
     // Array of pollable items
-    int num_pollables = 2;
+    int num_pollables = 3;
     zmq_pollitem_t pollables[num_pollables];
 
 #define ZMQML_MAKE_SOCKS(idx, s, st, ps, pst, path) \
@@ -36,6 +36,9 @@ class ZMQ_RepThread : public QThread
     
     // Socket to stop and bind
     ZMQML_MAKE_SOCKS(1, s_bind, ZMQ_REQ, ps_bind, ZMQ_REP, "inproc://s_bind")
+    
+    // Socket to stop and connect
+    ZMQML_MAKE_SOCKS(2, s_conn, ZMQ_REQ, ps_conn, ZMQ_REP, "inproc://s_conn")
     
     
     int bufsize = 1024;
@@ -60,8 +63,13 @@ class ZMQ_RepThread : public QThread
         } else if(pollables[1].revents) { // ps_bind
           ZMQML_RECV_BUFFER(ps_bind)
           printf("ZMQ Socket Info: Binding on %s\n", buffer);
-          zmq_bind(actual, buffer);
+          errchk(zmq_bind(actual, buffer));
           zmq_send(ps_bind, "OKAY", 4, 0);
+        } else if(pollables[2].revents) { // ps_conn
+          ZMQML_RECV_BUFFER(ps_conn)
+          printf("ZMQ Socket Info: Connecting on %s\n", buffer);
+          errchk(zmq_connect(actual, buffer));
+          zmq_send(ps_conn, "OKAY", 4, 0);
         }
       }
     }
@@ -75,13 +83,22 @@ public:
   
   void bind(const QString& endpt)
   {
-    char buffer [10];
+    char buffer [4];
     QByteArray bytes = endpt.toLocal8Bit();
     zmq_send(s_bind, bytes.data(), bytes.count(), 0);
     zmq_recv(s_bind, buffer, 4, 0);
   }
   
+  void connect(const QString& endpt)
+  {
+    char buffer [4];
+    QByteArray bytes = endpt.toLocal8Bit();
+    zmq_send(s_conn, bytes.data(), bytes.count(), 0);
+    zmq_recv(s_conn, buffer, 4, 0);
+  }
+  
   void* s_bind;
+  void* s_conn;
 };
 
 class ZMQ_Rep : public QObject
@@ -98,6 +115,9 @@ public slots:
   
   void bind(const QString& endpt)
   { thread->bind(endpt); }
+  
+  void connect(const QString& endpt)
+  { thread->connect(endpt); }
   
 private:
   

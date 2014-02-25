@@ -16,8 +16,9 @@ Item {
       subject.start()
       wait(500)
       console.log(subject)
-      subject.bind("ipc:///tmp/test2")
-      wait(500)
+      // subject.bind("ipc:///tmp/test2")
+      subject.connect("ipc:///tmp/test3")
+      wait(5000)
     }
   }
 }
