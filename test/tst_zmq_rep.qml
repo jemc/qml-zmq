@@ -13,9 +13,11 @@ Item {
     ZMQ_Rep { id: subject }
     
     function test_it() {
-      subject.bind("ipc:///tmp/test")
-      // subject.bind("whup://huh?")
+      subject.start()
+      wait(500)
       console.log(subject)
+      subject.bind("ipc:///tmp/test2")
+      wait(10000)
     }
   }
 }
