@@ -14,21 +14,28 @@ class ZMQ_RepThread : public QThread
   
   void run() Q_DECL_OVERRIDE
   {
-    // Main socket
+    // Context from which all sockets spring
     void *context = zmq_ctx_new();
+    
+    // Array of pollable items
+    int num_pollables = 2;
+    zmq_pollitem_t pollables[num_pollables];
+
+#define ZMQML_MAKE_SOCKS(idx, s, st, ps, pst, path) \
+    void *ps = zmq_socket(context, pst);            \
+           s = zmq_socket(context, st);             \
+    zmq_bind  (ps, path);                           \
+    zmq_connect(s, path);                           \
+    pollables[idx].socket = ps;                     \
+    pollables[idx].events = ZMQ_POLLIN;             
+    
+    // Main socket
     void *actual = zmq_socket(context, ZMQ_REP);
+    pollables[0].socket = actual;
+    pollables[0].events = ZMQ_POLLIN;
     
     // Socket to stop and bind
-    void *ps_bind = zmq_socket(context, ZMQ_REP);
-           s_bind = zmq_socket(context, ZMQ_REQ);
-    zmq_bind  (ps_bind, "inproc://s_bind");
-    zmq_connect(s_bind, "inproc://s_bind");
-    
-    zmq_pollitem_t items[2];
-    items[0].socket = actual;
-    items[0].events = ZMQ_POLLIN;
-    items[1].socket = ps_bind;
-    items[1].events = ZMQ_POLLIN;
+    ZMQML_MAKE_SOCKS(1, s_bind, ZMQ_REQ, ps_bind, ZMQ_REP, "inproc://s_bind")
     
     
     int bufsize = 1024;
@@ -40,14 +47,18 @@ class ZMQ_RepThread : public QThread
       printf("\nWaiting...\n");
       printf("In thread %p...\n", QThread::currentThread());
       
-      if(zmq_poll(items, 2, -1))
+#define ZMQML_RECV_BUFFER(s)                   \
+      count = zmq_recv(s, buffer, bufsize, 0); \
+      buffer[count] = 0;                       
+      
+      if(zmq_poll(pollables, num_pollables, -1))
       {
-        if(items[0].revents) { // Actual socket
-          count = zmq_recv(actual, buffer, bufsize, 0); buffer[count] = 0;
+        if(pollables[0].revents) { // Actual socket
+          ZMQML_RECV_BUFFER(actual)
           printf("ZMQ Socket Info: Received request: %s\n", buffer);
           zmq_send(actual, "OKAY", 4, 0);
-        } else if(items[1].revents) { // ps_bind
-          count = zmq_recv(ps_bind, buffer, bufsize, 0); buffer[count] = 0;
+        } else if(pollables[1].revents) { // ps_bind
+          ZMQML_RECV_BUFFER(ps_bind)
           printf("ZMQ Socket Info: Binding on %s\n", buffer);
           zmq_bind(actual, buffer);
           zmq_send(ps_bind, "OKAY", 4, 0);
@@ -62,10 +73,10 @@ class ZMQ_RepThread : public QThread
   
 public:
   
-  void bind(QString* endpt)
+  void bind(const QString& endpt)
   {
     char buffer [10];
-    QByteArray bytes = endpt->toLocal8Bit();
+    QByteArray bytes = endpt.toLocal8Bit();
     zmq_send(s_bind, bytes.data(), bytes.count(), 0);
     zmq_recv(s_bind, buffer, 4, 0);
   }
@@ -83,13 +94,10 @@ public:
 public slots:
   
   void start()
-  {
-    thread = new ZMQ_RepThread();
-    thread->start();
-  }
+  { thread = new ZMQ_RepThread(); thread->start(); }
   
-  void bind(QString endpt)
-  { thread->bind(&endpt); }
+  void bind(const QString& endpt)
+  { thread->bind(endpt); }
   
 private:
   

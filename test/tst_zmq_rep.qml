@@ -17,7 +17,7 @@ Item {
       wait(500)
       console.log(subject)
       subject.bind("ipc:///tmp/test2")
-      wait(10000)
+      wait(500)
     }
   }
 }
