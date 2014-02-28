@@ -3,10 +3,10 @@
 #include <qqml.h>
 
 
-#include "zctx.h"
+#include "zmq_rep.h"
 
 
-class CZMQPlugin : public QQmlExtensionPlugin
+class ZMQPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")

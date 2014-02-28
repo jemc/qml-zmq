@@ -2,7 +2,7 @@
 import QtTest 1.0
 import QtQuick 2.1
 
-import org.jemc.qml.CZMQ 1.0
+import org.jemc.qml.ZMQ 1.0
 
 
 Item {
@@ -16,9 +16,9 @@ Item {
       subject.start()
       wait(500)
       console.log(subject)
-      // subject.bind("ipc:///tmp/test2")
-      subject.connect("ipc:///tmp/test3")
-      wait(5000)
+      subject.bind("ipc:///tmp/test2")
+      // subject.connect("ipc:///tmp/test3")
+      wait(500)
     }
   }
 }

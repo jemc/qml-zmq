@@ -5,16 +5,16 @@ CONFIG += plugin \
           c++11
 QT += qml quick
 
-TARGET = $$qtLibraryTarget(czmqplugin)
-uri = org.jemc.qml.CZMQ
+TARGET = $$qtLibraryTarget(zmqplugin)
+uri = org.jemc.qml.ZMQ
 
 DESTDIR  = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 SRCDIR   = $$PWD/src
 BUILDDIR = $$PWD/build
 
-LIBS += -lzmq
+LIBS += -L/usr/local/lib -lzmq
 
-HEADERS += $$SRCDIR/czmqplugin.h    \
+HEADERS += $$SRCDIR/zmqplugin.h    \
            $$SRCDIR/zmq_rep.h
 
 OBJECTS_DIR = $$BUILDDIR/.obj
