@@ -51,39 +51,39 @@ class ZMQ_RepThread : public QThread
           count = zmq_recv(actual, buffer, bufsize, 0);
           buffer[count] = 0;
           printf("ZMQ Socket Info: Received request: %s\n", buffer);
-          zmq_send(actual, "OKAY", 4, 0);
+          zmq_send(actual, "OKAY", 5, 0);
         }
         else if(pollables[1].revents) { // ps_action
           
-          char* command;
-          char* payload;
-          zmq_msg_t msg_command;
-          zmq_msg_t msg_payload;
+          char* action;
+          char* string;
+          zmq_msg_t msg_action;
+          zmq_msg_t msg_string;
           
-          errchk(zmq_msg_init(&msg_command));
-          count = errchk(zmq_recvmsg(ps_action, &msg_command, 0));
-          command = (char*)zmq_msg_data(&msg_command);
+          errchk(zmq_msg_init(&msg_action));
+          errchk(zmq_recvmsg(ps_action, &msg_action, 0));
+          action = (char*)zmq_msg_data(&msg_action);
           
-          errchk(zmq_msg_init(&msg_payload));
-          count = errchk(zmq_recvmsg(ps_action, &msg_payload, 0));
-          payload = (char*)zmq_msg_data(&msg_payload);
+          errchk(zmq_msg_init(&msg_string));
+          errchk(zmq_recvmsg(ps_action, &msg_string, 0));
+          string = (char*)zmq_msg_data(&msg_string);
           
-          printf("ZMQ Socket Action: %s\n", command);
+          printf("ZMQ Socket Action: %s\n", action);
           
-          if(strcmp(command, "BIND")==0)
+          if(strcmp(action, "BIND")==0)
           {
-            printf("ZMQ Socket Info: Binding on %s\n", payload);
-            errchk(zmq_bind(actual, payload));
+            printf("ZMQ Socket Info: Binding on %s\n", string);
+            errchk(zmq_bind(actual, string));
           }
-          else if(strcmp(command, "CONN")==0)
+          else if(strcmp(action, "CONN")==0)
           {
-            printf("ZMQ Socket Info: Connecting to %s\n", payload);
-            errchk(zmq_bind(actual, payload));
+            printf("ZMQ Socket Info: Connecting to %s\n", string);
+            errchk(zmq_connect(actual, string));
           }
           
-          zmq_send(ps_action, "OKAY", 4, 0);
-          errchk(zmq_msg_close(&msg_command));
-          errchk(zmq_msg_close(&msg_payload));
+          zmq_send(ps_action, "OKAY", 5, 0);
+          errchk(zmq_msg_close(&msg_action));
+          errchk(zmq_msg_close(&msg_string));
         }
       }
     }
@@ -97,7 +97,7 @@ public:
   
   void action(const char* action, const QString& payload)
   {
-    char result [5];
+    char result [5]; // Expected result message size
     QByteArray bytes = payload.toLocal8Bit();
     zmq_send(s_action, action, strlen(action)+1, ZMQ_SNDMORE);
     zmq_send(s_action, bytes.data(), bytes.count()+1, 0);
