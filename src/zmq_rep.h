@@ -60,33 +60,42 @@ class ZMQ_RepThread : public QThread
           zmq_send(actual, "OKAY", 4, 0);
         } else if(pollables[1].revents) { // ps_action
           
-          // int64_t more;
-          // size_t more_size = sizeof more;
-          // do {
-          //   /* Create an empty ØMQ message to hold the message part */
-          //   zmq_msg_t part;
-          //   errchk(zmq_msg_init(&part));
-          //   /* Block until a message is available to be received from socket */
-          //   printf("ZMQ Socket Thing\n");
-          //   errchk(zmq_msg_recv(&part, ps_action, 0)==-1);
-          //   printf("ZMQ Socket Thing\n");
-          //   /* Determine if more message parts are to follow */
-          //   errchk(zmq_getsockopt(ps_action, ZMQ_RCVMORE, &more, &more_size));
-          //   zmq_msg_close(&part);
-          // } while (more);
+          char* command;
+          char* payload;
+          zmq_msg_t msg_command;
+          zmq_msg_t msg_payload;
           
+          errchk(zmq_msg_init(&msg_command));
+          count = errchk(zmq_recvmsg(ps_action, &msg_command, 0));
+          command = (char*)zmq_msg_data(&msg_command);
           
-          ZMQML_RECV_BUFFER(ps_action)
-          printf("ZMQ Socket Info: Binding on %s\n", buffer);
-          errchk(zmq_bind(actual, buffer));
+          errchk(zmq_msg_init(&msg_payload));
+          count = errchk(zmq_recvmsg(ps_action, &msg_payload, 0));
+          payload = (char*)zmq_msg_data(&msg_payload);
+          
+          printf("ZMQ Socket Action: %s\n", command);
+          
+          if(strcmp(command, "BIND")==0)
+          {
+            printf("ZMQ Socket Info: Binding on %s\n", payload);
+            errchk(zmq_bind(actual, payload));
+          }
+          else if(strcmp(command, "CONN")==0)
+          {
+            printf("ZMQ Socket Info: Connecting to %s\n", payload);
+            errchk(zmq_bind(actual, payload));
+          }
+          
           zmq_send(ps_action, "OKAY", 4, 0);
+          errchk(zmq_msg_close(&msg_command));
+          errchk(zmq_msg_close(&msg_payload));
         }
       }
     }
   }
   
   int errchk(int err)
-  { if(err) printf("ZMQ Socket Error: %s\n", zmq_strerror(errno));
+  { if(err==-1) printf("ZMQ Socket Error: %s\n", zmq_strerror(errno));
     return err; }
   
 public:
@@ -95,20 +104,21 @@ public:
   {
     char buffer [4];
     QByteArray bytes = endpt.toLocal8Bit();
-    zmq_send(s_action, bytes.data(), bytes.count(), 0);
-    zmq_recv(s_action, buffer, 4, 0);
+    zmq_send(s_action, "BIND", 5, ZMQ_SNDMORE);
+    zmq_send(s_action, bytes.data(), bytes.count()+1, 0);
+    zmq_recv(s_action, buffer, 5, 0);
   }
   
-  // void connect(const QString& endpt)
-  // {
-  //   char buffer [4];
-  //   QByteArray bytes = endpt.toLocal8Bit();
-  //   zmq_send(s_conn, bytes.data(), bytes.count(), 0);
-  //   zmq_recv(s_conn, buffer, 4, 0);
-  // }
+  void connect(const QString& endpt)
+  {
+    char buffer [4];
+    QByteArray bytes = endpt.toLocal8Bit();
+    zmq_send(s_action, "CONN", 5, ZMQ_SNDMORE);
+    zmq_send(s_action, bytes.data(), bytes.count()+1, 0);
+    zmq_recv(s_action, buffer, 5, 0);
+  }
   
   void* s_action;
-  // void* s_conn;
 };
 
 class ZMQ_Rep : public QObject
@@ -126,8 +136,8 @@ public slots:
   void bind(const QString& endpt)
   { thread->bind(endpt); }
   
-  // void connect(const QString& endpt)
-  // { thread->connect(endpt); }
+  void connect(const QString& endpt)
+  { thread->connect(endpt); }
   
 private:
   
