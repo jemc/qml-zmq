@@ -20,14 +20,6 @@ class ZMQ_RepThread : public QThread
     // Array of pollable items
     int num_pollables = 2;
     zmq_pollitem_t pollables[num_pollables];
-
-#define ZMQML_MAKE_SOCKS(idx, s, st, ps, pst, path) \
-    void *ps = zmq_socket(context, pst);            \
-           s = zmq_socket(context, st);             \
-    zmq_bind  (ps, path);                           \
-    zmq_connect(s, path);                           \
-    pollables[idx].socket = ps;                     \
-    pollables[idx].events = ZMQ_POLLIN;             
     
     // Main socket
     void *actual = zmq_socket(context, ZMQ_REP);
@@ -35,7 +27,12 @@ class ZMQ_RepThread : public QThread
     pollables[0].events = ZMQ_POLLIN;
     
     // Socket to stop and bind or connect or some other action
-    ZMQML_MAKE_SOCKS(1, s_action, ZMQ_REQ, ps_action, ZMQ_REP, "inproc://s_action")
+    void *ps_action = zmq_socket(context, ZMQ_REP);
+           s_action = zmq_socket(context, ZMQ_REQ);
+    zmq_bind  (ps_action, "inproc://s_action");
+    zmq_connect(s_action, "inproc://s_action");
+    pollables[1].socket = ps_action;
+    pollables[1].events = ZMQ_POLLIN;
     
     
     int bufsize = 1024;
@@ -48,14 +45,11 @@ class ZMQ_RepThread : public QThread
       printf("\nWaiting...\n");
       printf("In thread %p...\n", QThread::currentThread());
       
-#define ZMQML_RECV_BUFFER(s)                   \
-      count = zmq_recv(s, buffer, bufsize, 0); \
-      buffer[count] = 0;                       
-      
       if(zmq_poll(pollables, num_pollables, -1))
       {
         if(pollables[0].revents) { // Actual socket
-          ZMQML_RECV_BUFFER(actual)
+          count = zmq_recv(actual, buffer, bufsize, 0);
+          buffer[count] = 0;
           printf("ZMQ Socket Info: Received request: %s\n", buffer);
           zmq_send(actual, "OKAY", 4, 0);
         }
