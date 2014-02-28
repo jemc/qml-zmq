@@ -58,7 +58,8 @@ class ZMQ_RepThread : public QThread
           ZMQML_RECV_BUFFER(actual)
           printf("ZMQ Socket Info: Received request: %s\n", buffer);
           zmq_send(actual, "OKAY", 4, 0);
-        } else if(pollables[1].revents) { // ps_action
+        }
+        else if(pollables[1].revents) { // ps_action
           
           char* command;
           char* payload;
@@ -100,22 +101,14 @@ class ZMQ_RepThread : public QThread
   
 public:
   
-  void bind(const QString& endpt)
+  void action(const char* action, const QString& payload)
   {
-    char buffer [4];
-    QByteArray bytes = endpt.toLocal8Bit();
-    zmq_send(s_action, "BIND", 5, ZMQ_SNDMORE);
+    char result [5];
+    QByteArray bytes = payload.toLocal8Bit();
+    zmq_send(s_action, action, strlen(action)+1, ZMQ_SNDMORE);
     zmq_send(s_action, bytes.data(), bytes.count()+1, 0);
-    zmq_recv(s_action, buffer, 5, 0);
-  }
-  
-  void connect(const QString& endpt)
-  {
-    char buffer [4];
-    QByteArray bytes = endpt.toLocal8Bit();
-    zmq_send(s_action, "CONN", 5, ZMQ_SNDMORE);
-    zmq_send(s_action, bytes.data(), bytes.count()+1, 0);
-    zmq_recv(s_action, buffer, 5, 0);
+    zmq_recv(s_action, result, sizeof(result), 0);
+    printf("Result: %s\n", result);
   }
   
   void* s_action;
@@ -134,10 +127,10 @@ public slots:
   { thread = new ZMQ_RepThread(); thread->start(); }
   
   void bind(const QString& endpt)
-  { thread->bind(endpt); }
+  { thread->action("BIND", endpt); }
   
   void connect(const QString& endpt)
-  { thread->connect(endpt); }
+  { thread->action("CONN", endpt); }
   
 private:
   
