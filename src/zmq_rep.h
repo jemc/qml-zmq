@@ -21,12 +21,12 @@ class ZMQ_RepThread : public QThread
     int num_pollables = 2;
     zmq_pollitem_t pollables[num_pollables];
     
-    // Main socket
-    void *actual = zmq_socket(context, ZMQ_REP);
-       s_request = zmq_socket(context, ZMQ_REQ);
-    zmq_bind   (actual,    "inproc://s_request");
+    // Main socket and fake request socket
+    void *s_actual = zmq_socket(context, ZMQ_REP);
+         s_request = zmq_socket(context, ZMQ_REQ);
+    zmq_bind   (s_actual,  "inproc://s_request");
     zmq_connect(s_request, "inproc://s_request");
-    pollables[0].socket = actual;
+    pollables[0].socket = s_actual;
     pollables[0].events = ZMQ_POLLIN;
     
     // Socket to stop and bind or connect or some other action
@@ -38,10 +38,6 @@ class ZMQ_RepThread : public QThread
     pollables[1].events = ZMQ_POLLIN;
     
     
-    int bufsize = 1024;
-    int count = 0;
-    char buffer[bufsize];
-    
     
     while (1) {
       
@@ -51,49 +47,32 @@ class ZMQ_RepThread : public QThread
       if(zmq_poll(pollables, num_pollables, -1))
       {
         if(pollables[0].revents) { // Actual socket
-          count = zmq_recv(actual, buffer, bufsize, 0);
-          buffer[count] = 0;
-          printf("ZMQ Socket Info: Received request: %s\n", buffer);
-          zmq_send(actual, "OKAY", 5, 0);
+          QStringList str_req = recv_array(s_actual);
+          emit request(str_req);
+          zmq_send(s_actual, "OKAY", 5, 0);
         }
         else if(pollables[1].revents) { // ps_action
           
-          char* action;
-          char* string;
-          zmq_msg_t msg_action;
-          zmq_msg_t msg_string;
+          char* c_string;
+          QString action = recv_string(ps_action);
+          QString string = recv_string(ps_action);
           
-          errchk(zmq_msg_init(&msg_action));
-          errchk(zmq_recvmsg(ps_action, &msg_action, 0));
-          action = (char*)zmq_msg_data(&msg_action);
+          printf("ZMQ Socket Action: %s\n", action.toLocal8Bit().data());
           
-          errchk(zmq_msg_init(&msg_string));
-          errchk(zmq_recvmsg(ps_action, &msg_string, 0));
-          string = (char*)zmq_msg_data(&msg_string);
-          
-          printf("ZMQ Socket Action: %s\n", action);
-          
-          if(strcmp(action, "BIND")==0)
+          if(action == "BIND")
           {
-            printf("ZMQ Socket Info: Binding on %s\n", string);
-            errchk(zmq_bind(actual, string));
+            c_string = string.toLocal8Bit().data();
+            printf("ZMQ Socket Info: Binding on %s\n", c_string);
+            errchk(zmq_bind(s_actual, c_string));
           }
-          else if(strcmp(action, "CONN")==0)
+          else if(action == "CONN")
           {
-            printf("ZMQ Socket Info: Connecting to %s\n", string);
-            errchk(zmq_connect(actual, string));
-          }
-          else if(strcmp(action, "FAKE")==0)
-          {
-            printf("ZMQ Socket Info: Faking request: %s\n", string);
-            errchk(zmq_connect(actual, string));
-            emit request(QString(string));
+            c_string = string.toLocal8Bit().data();
+            printf("ZMQ Socket Info: Connecting to %s\n", c_string);
+            errchk(zmq_connect(s_actual, c_string));
           }
           
-          
-          zmq_send(ps_action, "OKAY", 5, 0);
-          errchk(zmq_msg_close(&msg_action));
-          errchk(zmq_msg_close(&msg_string));
+          send_string(ps_action, QString("OKAY"), 0);
         }
       }
     }
@@ -105,27 +84,67 @@ class ZMQ_RepThread : public QThread
   
 signals:
   
-  void request(const QString& string);
+  void request(const QStringList& data);
   
 public:
   
   void action(const char* action, const QString& payload)
   {
-    char result [5]; // Expected result message size
-    QByteArray bytes = payload.toLocal8Bit();
-    errchk(zmq_send(s_action, action, strlen(action)+1, ZMQ_SNDMORE));
-    errchk(zmq_send(s_action, bytes.data(), bytes.count()+1, 0));
-    errchk(zmq_recv(s_action, result, sizeof(result), 0));
-    printf("Result: %s\n", result);
+    send_array(s_action, (QStringList() << action << payload));
+    QStringList result = recv_array(s_action);
+    printf("Result: %s\n", result[0].toLocal8Bit().data());
   }
   
-  void fakeRequest(const QString& payload)
+  void fakeRequest(const QStringList& payload)
   {
-    char result [5]; // Expected result message size
-    QByteArray bytes = payload.toLocal8Bit();
-    errchk(zmq_send(s_request, bytes.data(), bytes.count()+1, 0));
-    errchk(zmq_recv(s_request, result, sizeof(result), 0));
-    printf("Result: %s\n", result);
+    send_array(s_request, payload);
+    QStringList result = recv_array(s_request);
+    printf("Result: %s\n", result[0].toLocal8Bit().data());
+  }
+  
+  
+  int send_string(void* socket, const QString& string, int flags)
+  {
+    QByteArray bytes = string.toLocal8Bit();
+    return errchk(zmq_send(socket, bytes.data(), bytes.count()+1, flags));
+  }
+  
+  int send_array(void* socket, const QStringList& list)
+  {
+    int list_size = list.size()-1;
+    
+    for (int i = 0; i < list_size; ++i)
+      errchk(send_string(socket, list[i], ZMQ_SNDMORE));
+    
+    return errchk(send_string(socket, list[list_size], 0));
+  }
+  
+  QString recv_string(void* socket)
+  {
+    QString string;
+    zmq_msg_t msg;
+    
+    errchk(zmq_msg_init(&msg));
+    errchk(zmq_recvmsg(socket, &msg, 0));
+    string = (char*)zmq_msg_data(&msg);
+    errchk(zmq_msg_close(&msg));
+    
+    return string;
+  }
+  
+  QStringList recv_array(void* socket)
+  {
+    QStringList list;
+    int rcv_more = 1;
+    size_t length;
+    
+    while(rcv_more)
+    {
+      list << recv_string(socket);
+      zmq_getsockopt(socket, ZMQ_RCVMORE, &rcv_more, &length);
+    }
+    
+    return list;
   }
   
   void* s_request;
@@ -139,7 +158,7 @@ class ZMQ_Rep : public QObject
   
 signals:
   
-  void request(const QString& string);
+  void request(const QStringList& data);
   
 public slots:
   
@@ -147,7 +166,7 @@ public slots:
   { thread = new ZMQ_RepThread();
     
     QObject::connect(thread, &ZMQ_RepThread::request,
-      [=](const QString& string) { emit request(string); });
+      [=](const QStringList& data) { emit request(data); });
     
     thread->start(); }
   
@@ -157,8 +176,8 @@ public slots:
   void connect(const QString& endpt)
   { thread->action("CONN", endpt); }
   
-  void fakeRequest(const QString& string)
-  { thread->fakeRequest(string); }
+  void fakeRequest(const QStringList& data)
+  { thread->fakeRequest(data); }
   
 private:
   

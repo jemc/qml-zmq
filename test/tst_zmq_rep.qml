@@ -11,16 +11,17 @@ Item {
     name: "ZMQ_Rep"
     
     ZMQ_Rep { id: subject
-      onRequest: console.log(string)
+      onRequest: console.log(data)
     }
     
     function test_it() {
       subject.start()
       wait(500)
-      console.log(subject)
-      // subject.bind("ipc:///tmp/test2")
-      // subject.connect("ipc:///tmp/test3")
-      subject.fakeRequest("this is a fake request")
+      subject.bind("ipc:///tmp/test2")
+      wait(500)
+      subject.connect("ipc:///tmp/test3")
+      wait(500)
+      subject.fakeRequest(["this","is","a","fake","request"])
       wait(500)
     }
   }
