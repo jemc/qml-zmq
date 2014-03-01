@@ -130,7 +130,6 @@ public:
   
   void* s_request;
   void* s_action;
-  void* context;
 };
 
 class ZMQ_Rep : public QObject
