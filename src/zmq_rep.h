@@ -23,6 +23,9 @@ class ZMQ_RepThread : public QThread
     
     // Main socket
     void *actual = zmq_socket(context, ZMQ_REP);
+       s_request = zmq_socket(context, ZMQ_REQ);
+    zmq_bind   (actual,    "inproc://s_request");
+    zmq_connect(s_request, "inproc://s_request");
     pollables[0].socket = actual;
     pollables[0].events = ZMQ_POLLIN;
     
@@ -80,6 +83,13 @@ class ZMQ_RepThread : public QThread
             printf("ZMQ Socket Info: Connecting to %s\n", string);
             errchk(zmq_connect(actual, string));
           }
+          else if(strcmp(action, "FAKE")==0)
+          {
+            printf("ZMQ Socket Info: Faking request: %s\n", string);
+            errchk(zmq_connect(actual, string));
+            emit request(QString(string));
+          }
+          
           
           zmq_send(ps_action, "OKAY", 5, 0);
           errchk(zmq_msg_close(&msg_action));
@@ -93,6 +103,10 @@ class ZMQ_RepThread : public QThread
   { if(err==-1) printf("ZMQ Socket Error: %s\n", zmq_strerror(errno));
     return err; }
   
+signals:
+  
+  void request(const QString& string);
+  
 public:
   
   void action(const char* action, const QString& payload)
@@ -105,7 +119,18 @@ public:
     printf("Result: %s\n", result);
   }
   
+  void fakeRequest(const QString& payload)
+  {
+    char result [5]; // Expected result message size
+    QByteArray bytes = payload.toLocal8Bit();
+    zmq_send(s_request, bytes.data(), bytes.count()+1, 0);
+    zmq_recv(s_request, result, sizeof(result), 0);
+    printf("Result: %s\n", result);
+  }
+  
+  void* s_request;
   void* s_action;
+  void* context;
 };
 
 class ZMQ_Rep : public QObject
@@ -113,18 +138,28 @@ class ZMQ_Rep : public QObject
   Q_OBJECT
   void _() {};
   
-public:
+signals:
+  
+  void request(const QString& string);
   
 public slots:
   
   void start()
-  { thread = new ZMQ_RepThread(); thread->start(); }
+  { thread = new ZMQ_RepThread();
+    
+    QObject::connect(thread, &ZMQ_RepThread::request,
+      [=](const QString& string) { emit request(string); });
+    
+    thread->start(); }
   
   void bind(const QString& endpt)
   { thread->action("BIND", endpt); }
   
   void connect(const QString& endpt)
   { thread->action("CONN", endpt); }
+  
+  void fakeRequest(const QString& string)
+  { thread->fakeRequest(string); }
   
 private:
   
