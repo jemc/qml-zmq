@@ -14,7 +14,8 @@ BUILDDIR = $$PWD/build
 
 LIBS += -L/usr/local/lib -lzmq
 
-HEADERS += $$SRCDIR/zmqplugin.h    \
+HEADERS += $$SRCDIR/zmqplugin.h           \
+           $$SRCDIR/zmq_abstract_thread.h \
            $$SRCDIR/zmq_rep.h
 
 OBJECTS_DIR = $$BUILDDIR/.obj

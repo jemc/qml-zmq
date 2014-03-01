@@ -6,15 +6,17 @@
 
 #include <zmq.h>
 
+#include "zmq_abstract_thread.h"
 
-class ZMQ_RepThread : public QThread
+
+class ZMQ_RepThread : public ZMQ_AbstractThread
 {
   Q_OBJECT
   void _() {};
   
   void run() Q_DECL_OVERRIDE
   {
-    // Context from which all sockets spring
+    // Context from which all of this thread's sockets spring
     void *context = zmq_ctx_new();
     
     // Array of pollable items
@@ -22,11 +24,11 @@ class ZMQ_RepThread : public QThread
     zmq_pollitem_t pollables[num_pollables];
     
     // Main socket and fake request socket
-    void *s_actual = zmq_socket(context, ZMQ_REP);
-         s_request = zmq_socket(context, ZMQ_REQ);
-    zmq_bind   (s_actual,  "inproc://s_request");
-    zmq_connect(s_request, "inproc://s_request");
-    pollables[0].socket = s_actual;
+    void *ps_actual = zmq_socket(context, ZMQ_REP);
+             s_fake = zmq_socket(context, ZMQ_REQ);
+    zmq_bind(ps_actual, "inproc://s_fake");
+    zmq_connect(s_fake, "inproc://s_fake");
+    pollables[0].socket = ps_actual;
     pollables[0].events = ZMQ_POLLIN;
     
     // Socket to stop and bind or connect or some other action
@@ -38,7 +40,6 @@ class ZMQ_RepThread : public QThread
     pollables[1].events = ZMQ_POLLIN;
     
     
-    
     while (1) {
       
       printf("\nWaiting...\n");
@@ -47,9 +48,9 @@ class ZMQ_RepThread : public QThread
       if(zmq_poll(pollables, num_pollables, -1))
       {
         if(pollables[0].revents) { // Actual socket
-          QStringList str_req = recv_array(s_actual);
+          QStringList str_req = recv_array(ps_actual);
           emit request(str_req);
-          zmq_send(s_actual, "OKAY", 5, 0);
+          zmq_send(ps_actual, "OKAY", 5, 0);
         }
         else if(pollables[1].revents) { // ps_action
           
@@ -63,13 +64,13 @@ class ZMQ_RepThread : public QThread
           {
             c_string = string.toLocal8Bit().data();
             printf("ZMQ Socket Info: Binding on %s\n", c_string);
-            errchk(zmq_bind(s_actual, c_string));
+            errchk(zmq_bind(ps_actual, c_string));
           }
           else if(action == "CONN")
           {
             c_string = string.toLocal8Bit().data();
             printf("ZMQ Socket Info: Connecting to %s\n", c_string);
-            errchk(zmq_connect(s_actual, c_string));
+            errchk(zmq_connect(ps_actual, c_string));
           }
           
           send_string(ps_action, QString("OKAY"), 0);
@@ -77,10 +78,6 @@ class ZMQ_RepThread : public QThread
       }
     }
   }
-  
-  int errchk(int err)
-  { if(err==-1) printf("ZMQ Socket Error: %s\n", zmq_strerror(errno));
-    return err; }
   
 signals:
   
@@ -97,59 +94,15 @@ public:
   
   void fakeRequest(const QStringList& payload)
   {
-    send_array(s_request, payload);
-    QStringList result = recv_array(s_request);
+    send_array(s_fake, payload);
+    QStringList result = recv_array(s_fake);
     printf("Result: %s\n", result[0].toLocal8Bit().data());
   }
   
-  
-  int send_string(void* socket, const QString& string, int flags)
-  {
-    QByteArray bytes = string.toLocal8Bit();
-    return errchk(zmq_send(socket, bytes.data(), bytes.count()+1, flags));
-  }
-  
-  int send_array(void* socket, const QStringList& list)
-  {
-    int list_size = list.size()-1;
-    
-    for (int i = 0; i < list_size; ++i)
-      errchk(send_string(socket, list[i], ZMQ_SNDMORE));
-    
-    return errchk(send_string(socket, list[list_size], 0));
-  }
-  
-  QString recv_string(void* socket)
-  {
-    QString string;
-    zmq_msg_t msg;
-    
-    errchk(zmq_msg_init(&msg));
-    errchk(zmq_recvmsg(socket, &msg, 0));
-    string = (char*)zmq_msg_data(&msg);
-    errchk(zmq_msg_close(&msg));
-    
-    return string;
-  }
-  
-  QStringList recv_array(void* socket)
-  {
-    QStringList list;
-    int rcv_more = 1;
-    size_t length;
-    
-    while(rcv_more)
-    {
-      list << recv_string(socket);
-      zmq_getsockopt(socket, ZMQ_RCVMORE, &rcv_more, &length);
-    }
-    
-    return list;
-  }
-  
-  void* s_request;
+  void* s_fake;
   void* s_action;
 };
+
 
 class ZMQ_Rep : public QObject
 {
