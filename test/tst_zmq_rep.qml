@@ -11,7 +11,10 @@ Item {
     name: "ZMQ_Rep"
     
     ZMQ_Rep { id: subject
-      onRequest: console.log(data)
+      onRequest: {
+        console.log(data)
+        // reply(["heyo","bro"])
+      }
     }
     
     function test_it() {

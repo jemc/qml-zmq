@@ -20,7 +20,7 @@ class ZMQ_RepThread : public ZMQ_AbstractThread
     void *context = zmq_ctx_new();
     
     // Array of pollable items
-    int num_pollables = 2;
+    int num_pollables = 3;
     zmq_pollitem_t pollables[num_pollables];
     
     // Main socket and fake request socket
@@ -31,13 +31,21 @@ class ZMQ_RepThread : public ZMQ_AbstractThread
     pollables[0].socket = ps_actual;
     pollables[0].events = ZMQ_POLLIN;
     
+    // Socket to get reply from user code and send to actual
+    void *ps_reply = zmq_socket(context, ZMQ_PULL);
+           s_reply = zmq_socket(context, ZMQ_PUSH);
+    zmq_bind  (ps_reply, "inproc://s_reply");
+    zmq_connect(s_reply, "inproc://s_reply");
+    pollables[1].socket = ps_reply;
+    pollables[1].events = ZMQ_POLLIN;
+    
     // Socket to stop and bind or connect or some other action
     void *ps_action = zmq_socket(context, ZMQ_REP);
            s_action = zmq_socket(context, ZMQ_REQ);
     zmq_bind  (ps_action, "inproc://s_action");
     zmq_connect(s_action, "inproc://s_action");
-    pollables[1].socket = ps_action;
-    pollables[1].events = ZMQ_POLLIN;
+    pollables[2].socket = ps_action;
+    pollables[2].events = ZMQ_POLLIN;
     
     
     while (1) {
@@ -48,11 +56,15 @@ class ZMQ_RepThread : public ZMQ_AbstractThread
       if(zmq_poll(pollables, num_pollables, -1))
       {
         if(pollables[0].revents) { // Actual socket
-          QStringList str_req = recv_array(ps_actual);
-          emit request(str_req);
-          zmq_send(ps_actual, "OKAY", 5, 0);
+          QStringList list = recv_array(ps_actual);
+          emit request(list);
+          // zmq_send(ps_actual, "OKAY", 5, 0);
         }
-        else if(pollables[1].revents) { // ps_action
+        else if(pollables[1].revents) { // ps_reply
+          QStringList list = recv_array(ps_reply);
+          send_array(ps_actual, list);
+        }
+        else if(pollables[2].revents) { // ps_action
           
           char* c_string;
           QString action = recv_string(ps_action);
@@ -85,6 +97,16 @@ signals:
   
 public:
   
+  void fakeRequest(const QStringList& payload)
+  {
+    send_array(s_fake, payload);
+  }
+  
+  void reply(const QStringList& payload)
+  {
+    send_array(s_reply, payload);
+  }
+  
   void action(const char* action, const QString& payload)
   {
     send_array(s_action, (QStringList() << action << payload));
@@ -92,14 +114,8 @@ public:
     printf("Result: %s\n", result[0].toLocal8Bit().data());
   }
   
-  void fakeRequest(const QStringList& payload)
-  {
-    send_array(s_fake, payload);
-    QStringList result = recv_array(s_fake);
-    printf("Result: %s\n", result[0].toLocal8Bit().data());
-  }
-  
   void* s_fake;
+  void* s_reply;
   void* s_action;
 };
 
@@ -131,6 +147,9 @@ public slots:
   
   void fakeRequest(const QStringList& data)
   { thread->fakeRequest(data); }
+  
+  void reply(const QStringList& data)
+  { thread->reply(data); }
   
 private:
   
