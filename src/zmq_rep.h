@@ -113,9 +113,9 @@ public:
   {
     char result [5]; // Expected result message size
     QByteArray bytes = payload.toLocal8Bit();
-    zmq_send(s_action, action, strlen(action)+1, ZMQ_SNDMORE);
-    zmq_send(s_action, bytes.data(), bytes.count()+1, 0);
-    zmq_recv(s_action, result, sizeof(result), 0);
+    errchk(zmq_send(s_action, action, strlen(action)+1, ZMQ_SNDMORE));
+    errchk(zmq_send(s_action, bytes.data(), bytes.count()+1, 0));
+    errchk(zmq_recv(s_action, result, sizeof(result), 0));
     printf("Result: %s\n", result);
   }
   
@@ -123,8 +123,8 @@ public:
   {
     char result [5]; // Expected result message size
     QByteArray bytes = payload.toLocal8Bit();
-    zmq_send(s_request, bytes.data(), bytes.count()+1, 0);
-    zmq_recv(s_request, result, sizeof(result), 0);
+    errchk(zmq_send(s_request, bytes.data(), bytes.count()+1, 0));
+    errchk(zmq_recv(s_request, result, sizeof(result), 0));
     printf("Result: %s\n", result);
   }
   
