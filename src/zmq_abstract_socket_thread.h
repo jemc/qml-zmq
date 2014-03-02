@@ -81,15 +81,17 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           else if(action == "CONN")
           {
             c_string = string.toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Connecting to %s\n", c_string);
+            printf("ZMQ Socket Info: Connecting to %s\n", c_string);
             errchk("run, zmq_connect", zmq_connect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else if(action == "DSCN")
           {
             c_string = string.toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
-            errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
+            printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
+            // TODO: some kind of error checking on disconnect
+            // errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
+            zmq_disconnect(ps_actual, c_string);
             send_string(ps_action, QString("OKAY"), 0);
           }
           else
@@ -131,10 +133,10 @@ public slots:
   { action("UNBI", endpt); m_binds.removeAll(endpt); }
   
   void connect(const QString& endpt)
-  { action("CONN", endpt); }
+  { action("CONN", endpt); m_conns.removeAll(endpt); m_conns.append(endpt); }
   
   void disconnect(const QString& endpt)
-  { action("DSCN", endpt); }
+  { action("DSCN", endpt); m_conns.removeAll(endpt); }
   
   void stop()
   {
@@ -193,7 +195,7 @@ private:
   }
   
   QStringList m_binds;
-  QStringList m_connects;
+  QStringList m_conns;
   
 public:
   
@@ -205,16 +207,12 @@ public:
     for(int i = 0; i <   binds.size(); ++i)   bind(binds[i]);
   }
   
-  QStringList connects() { return m_connects; }
+  QStringList connects() { return m_conns; }
   
-  void setConnects(QStringList connects)
+  void setConnects(QStringList conns)
   {
-    for (int i = 0; i < m_connects.size(); ++i)
-      disconnect(m_connects[i]);
-    
-    m_connects = connects;
-    for (int i = 0; i < m_connects.size(); ++i)
-      connect(m_connects[i]);
+    for(int i = 0; i < m_conns.size(); ++i) disconnect(m_conns[i]);
+    for(int i = 0; i <   conns.size(); ++i)    connect(conns[i]);
   }
   
 protected:

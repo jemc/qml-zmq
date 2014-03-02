@@ -47,5 +47,15 @@ Item {
       rep.unbind("ipc:///tmp/other")
       compare(rep.binds, ["ipc:///tmp/test"])
     }
+    
+    // function test_connects() {
+    //   compare(req.connects, ["ipc:///tmp/test"])
+    //   req.connect("ipc:///tmp/other")
+    //   compare(req.connects, ["ipc:///tmp/test", "ipc:///tmp/other"])
+    //   req.connect("ipc:///tmp/other")
+    //   compare(req.connects, ["ipc:///tmp/test", "ipc:///tmp/other"])
+    //   req.disconnect("ipc:///tmp/other")
+    //   compare(req.connects, ["ipc:///tmp/test"])
+    // }
   }
 }
