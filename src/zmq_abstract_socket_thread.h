@@ -122,7 +122,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
   
 signals:
   
-  void receive(const QStringList& data);
+  void receive(const QStringList& message);
   
 public slots:
   
