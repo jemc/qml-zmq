@@ -11,7 +11,7 @@ Item {
     name: "ZMQ_Rep"
     
     ZMQ_Rep { id: subject
-      onRequest: {
+      onReceive: {
         console.log(data)
         send(["heyo","bro"])
       }
@@ -24,7 +24,7 @@ Item {
       wait(500)
       subject.connect("ipc:///tmp/test3")
       wait(500)
-      subject.fakeRequest(["this","is","a","fake","request"])
+      subject.fakeReceive(["this","is","a","fake","request"])
       wait(500)
       subject.stop()
       wait(500)

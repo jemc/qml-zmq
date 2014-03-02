@@ -23,7 +23,7 @@ class ZMQ_Rep : public ZMQ_AbstractSocketThread
     int num_pollables = 3;
     zmq_pollitem_t pollables[num_pollables];
     
-    // Main socket and fake request socket
+    // Main socket and fake receive socket
     void *ps_actual = zmq_socket(context, ZMQ_REP);
              s_fake = zmq_socket(context, ZMQ_REQ);
     zmq_bind(ps_actual, "inproc://s_fake");
@@ -56,7 +56,7 @@ class ZMQ_Rep : public ZMQ_AbstractSocketThread
       if(zmq_poll(pollables, num_pollables, -1))
       {
         if(pollables[0].revents) { // Actual socket
-          emit request(recv_array(ps_actual));
+          emit receive(recv_array(ps_actual));
         }
         else if(pollables[1].revents) { // ps_send
           send_array(ps_actual, recv_array(ps_send));
@@ -114,11 +114,11 @@ class ZMQ_Rep : public ZMQ_AbstractSocketThread
   
 signals:
   
-  void request(const QStringList& data);
+  void receive(const QStringList& data);
   
 public slots:
   
-  void fakeRequest(const QStringList& payload)
+  void fakeReceive(const QStringList& payload)
   {
     send_array(s_fake, payload);
   }
