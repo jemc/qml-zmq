@@ -48,7 +48,7 @@ class ZMQ_AbstractSocketThread : public QThread
     
     while(not_dead) {
       
-      printf("\nPolling in thread %p...\n", QThread::currentThread());
+      // printf("\nPolling in thread %p...\n", QThread::currentThread());
       
       if(zmq_poll(pollables, num_pollables, -1))
       {
@@ -64,25 +64,25 @@ class ZMQ_AbstractSocketThread : public QThread
           QString action = recv_string(ps_action);
           QString string = recv_string(ps_action);
           
-          printf("ZMQ Socket Action: %s\n", action.toLocal8Bit().data());
+          // printf("ZMQ Socket Action: %s\n", action.toLocal8Bit().data());
           
           if(action == "BIND")
           {
             c_string = string.toLocal8Bit().data();
-            printf("ZMQ Socket Info: Binding on %s\n", c_string);
+            // printf("ZMQ Socket Info: Binding on %s\n", c_string);
             errchk(zmq_bind(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else if(action == "CONN")
           {
             c_string = string.toLocal8Bit().data();
-            printf("ZMQ Socket Info: Connecting to %s\n", c_string);
+            // printf("ZMQ Socket Info: Connecting to %s\n", c_string);
             errchk(zmq_connect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else if(action == "KILL")
           {
-            printf("ZMQ Socket Info: Killing\n");
+            // printf("ZMQ Socket Info: Killing\n");
             not_dead = 0;
           }
           else
@@ -116,13 +116,13 @@ public slots:
   
   void send(const QStringList& payload)
   {
-    printf("Send in thread %p...\n", QThread::currentThread());
+    // printf("Send in thread %p...\n", QThread::currentThread());
     send_array(s_send, payload);
   }
   
   void action(const char* action, const QString& payload)
   {
-    printf("Action in thread %p...\n", QThread::currentThread());
+    // printf("Action in thread %p...\n", QThread::currentThread());
     
     send_array(s_action, (QStringList() << action << payload));
     QStringList result = recv_array(s_action);
@@ -131,7 +131,7 @@ public slots:
     if(result[0] == "DEAD")
       errchk(zmq_close(s_action));
     
-    printf("Result: %s\n", result[0].toLocal8Bit().data());
+    // printf("Result: %s\n", result[0].toLocal8Bit().data());
   }
   
   void bind(const QString& endpt)
