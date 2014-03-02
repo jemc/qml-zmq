@@ -3,8 +3,7 @@
 
 #include <qqml.h>
 
-#include "zmq_rep.h"
-#include "zmq_req.h"
+#include "zmq_sockets.h"
 
 
 class ZMQPlugin : public QQmlExtensionPlugin
