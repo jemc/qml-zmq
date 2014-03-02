@@ -13,7 +13,10 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
 {
   Q_OBJECT
   
-  Q_PROPERTY(QStringList binds READ binds WRITE setBinds NOTIFY bindsChanged)
+  Q_PROPERTY(QStringList binds    READ binds    WRITE setBinds \
+                                  NOTIFY bindsChanged)
+  Q_PROPERTY(QStringList connects READ connects WRITE setConnects \
+                                  NOTIFY connectsChanged)
   
   void _() {};
   
@@ -111,6 +114,7 @@ signals:
   void receive(const QStringList& message);
   
   void bindsChanged();
+  void connectsChanged();
   
 public slots:
   
@@ -189,6 +193,7 @@ private:
   }
   
   QStringList m_binds;
+  QStringList m_connects;
   
 public:
   
@@ -202,6 +207,18 @@ public:
     m_binds = binds;
     for (int i = 0; i < m_binds.size(); ++i)
       bind(m_binds[i]);
+  }
+  
+  QStringList connects() { return m_connects; }
+  
+  void setConnects(QStringList connects)
+  {
+    for (int i = 0; i < m_connects.size(); ++i)
+      disconnect(m_connects[i]);
+    
+    m_connects = connects;
+    for (int i = 0; i < m_connects.size(); ++i)
+      connect(m_connects[i]);
   }
   
 protected:
