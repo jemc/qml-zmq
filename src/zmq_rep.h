@@ -31,12 +31,12 @@ class ZMQ_Rep : public ZMQ_AbstractSocketThread
     pollables[0].socket = ps_actual;
     pollables[0].events = ZMQ_POLLIN;
     
-    // Socket to get reply from user code and send to actual
-    void *ps_reply = zmq_socket(context, ZMQ_PULL);
-           s_reply = zmq_socket(context, ZMQ_PUSH);
-    zmq_bind  (ps_reply, "inproc://s_reply");
-    zmq_connect(s_reply, "inproc://s_reply");
-    pollables[1].socket = ps_reply;
+    // Socket to get send from user code and send to actual
+    void *ps_send = zmq_socket(context, ZMQ_PULL);
+           s_send = zmq_socket(context, ZMQ_PUSH);
+    zmq_bind  (ps_send, "inproc://s_send");
+    zmq_connect(s_send, "inproc://s_send");
+    pollables[1].socket = ps_send;
     pollables[1].events = ZMQ_POLLIN;
     
     // Socket to stop and bind or connect or some other action
@@ -58,8 +58,8 @@ class ZMQ_Rep : public ZMQ_AbstractSocketThread
         if(pollables[0].revents) { // Actual socket
           emit request(recv_array(ps_actual));
         }
-        else if(pollables[1].revents) { // ps_reply
-          send_array(ps_actual, recv_array(ps_reply));
+        else if(pollables[1].revents) { // ps_send
+          send_array(ps_actual, recv_array(ps_send));
         }
         else if(pollables[2].revents) { // ps_action
           
@@ -99,15 +99,12 @@ class ZMQ_Rep : public ZMQ_AbstractSocketThread
     ///
     // Close sockets (except for s_action, which is closed in receiving thread)
     
-    // Main socket and fake request socket
     errchk(zmq_close(ps_actual));
     errchk(zmq_close(s_fake));
     
-    // Socket to get reply from user code and send to actual
-    errchk(zmq_close(ps_reply));
-    errchk(zmq_close(s_reply));
+    errchk(zmq_close(ps_send));
+    errchk(zmq_close(s_send));
     
-    // Socket to stop and bind or connect or some other action
     errchk(zmq_close(ps_action));
     // errchk(zmq_close(s_action));  (will be closed in receiving thread)
     
@@ -126,10 +123,10 @@ public slots:
     send_array(s_fake, payload);
   }
   
-  void reply(const QStringList& payload)
+  void send(const QStringList& payload)
   {
-    printf("Reply in thread %p...\n", QThread::currentThread());
-    send_array(s_reply, payload);
+    printf("Send in thread %p...\n", QThread::currentThread());
+    send_array(s_send, payload);
   }
   
   void action(const char* action, const QString& payload)
@@ -158,7 +155,7 @@ public slots:
 private:
   
   void* s_fake;
-  void* s_reply;
+  void* s_send;
   void* s_action;
 };
 

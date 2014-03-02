@@ -13,7 +13,7 @@ Item {
     ZMQ_Rep { id: subject
       onRequest: {
         console.log(data)
-        reply(["heyo","bro"])
+        send(["heyo","bro"])
       }
     }
     
