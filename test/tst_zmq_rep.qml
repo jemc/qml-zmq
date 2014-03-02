@@ -10,23 +10,33 @@ Item {
     id: test_rep
     name: "ZMQ_Rep"
     
-    ZMQ_Rep { id: subject
+    ZMQ_Rep { id: rep
       onReceive: {
         console.log(data)
         send(["heyo","bro"])
       }
     }
     
+    ZMQ_Req { id: req
+      onReceive: {
+        console.log(data)
+      }
+    }
+    
     function test_it() {
-      subject.start()
+      rep.start()
+      req.start()
       wait(500)
-      subject.bind("ipc:///tmp/test2")
+      
+      rep.bind("ipc:///tmp/test")
+      req.connect("ipc:///tmp/test")
       wait(500)
-      subject.connect("ipc:///tmp/test3")
+      
+      req.send(["this","is","a","fake","request"])
       wait(500)
-      subject.fakeReceive(["this","is","a","fake","request"])
-      wait(500)
-      subject.stop()
+      
+      rep.stop()
+      req.stop()
       wait(500)
     }
   }

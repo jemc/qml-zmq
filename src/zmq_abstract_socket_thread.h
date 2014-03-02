@@ -12,6 +12,8 @@ class ZMQ_AbstractSocketThread : public QThread
   Q_OBJECT
   void _() {};
   
+  virtual void* make_socket(void* context) = 0;
+  
   void run() Q_DECL_OVERRIDE
   {
     // Context from which all of this thread's sockets spring
@@ -22,10 +24,7 @@ class ZMQ_AbstractSocketThread : public QThread
     zmq_pollitem_t pollables[num_pollables];
     
     // Main socket and fake receive socket
-    void *ps_actual = zmq_socket(context, ZMQ_REP);
-             s_fake = zmq_socket(context, ZMQ_REQ);
-    zmq_bind(ps_actual, "inproc://s_fake");
-    zmq_connect(s_fake, "inproc://s_fake");
+    void *ps_actual = make_socket(context);
     pollables[0].socket = ps_actual;
     pollables[0].events = ZMQ_POLLIN;
     
@@ -98,7 +97,6 @@ class ZMQ_AbstractSocketThread : public QThread
     // Close sockets (except for s_action, which is closed in receiving thread)
     
     errchk(zmq_close(ps_actual));
-    errchk(zmq_close(s_fake));
     
     errchk(zmq_close(ps_send));
     errchk(zmq_close(s_send));
@@ -115,11 +113,6 @@ signals:
   void receive(const QStringList& data);
   
 public slots:
-  
-  void fakeReceive(const QStringList& payload)
-  {
-    send_array(s_fake, payload);
-  }
   
   void send(const QStringList& payload)
   {
@@ -152,7 +145,6 @@ public slots:
   
 private:
   
-  void* s_fake;
   void* s_send;
   void* s_action;
   

@@ -1,6 +1,6 @@
 
-#ifndef QML_ZMQ_REP_H
-#define QML_ZMQ_REP_H
+#ifndef QML_ZMQ_REQ_H
+#define QML_ZMQ_REQ_H
 
 #include <QtQml>
 
@@ -9,13 +9,13 @@
 #include "zmq_abstract_socket_thread.h"
 
 
-class ZMQ_Rep : public ZMQ_AbstractSocketThread
+class ZMQ_Req : public ZMQ_AbstractSocketThread
 {
   Q_OBJECT
   void _() {};
   
   void* make_socket(void* context)
-  { return zmq_socket(context, ZMQ_REP); }
+  { return zmq_socket(context, ZMQ_REQ); }
 };
 
 

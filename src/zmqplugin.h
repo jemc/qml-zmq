@@ -1,9 +1,10 @@
 
 #include <QQmlExtensionPlugin>
+
 #include <qqml.h>
 
-
 #include "zmq_rep.h"
+#include "zmq_req.h"
 
 
 class ZMQPlugin : public QQmlExtensionPlugin
@@ -15,5 +16,6 @@ public:
     void registerTypes(const char *uri)
     {
         qmlRegisterType<ZMQ_Rep>(uri, 1, 0, "ZMQ_Rep");
+        qmlRegisterType<ZMQ_Req>(uri, 1, 0, "ZMQ_Req");
     };
 };
