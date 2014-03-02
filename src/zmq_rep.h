@@ -6,10 +6,10 @@
 
 #include <zmq.h>
 
-#include "zmq_abstract_thread.h"
+#include "zmq_abstract_socket_thread.h"
 
 
-class ZMQ_Rep : public ZMQ_AbstractThread
+class ZMQ_Rep : public ZMQ_AbstractSocketThread
 {
   Q_OBJECT
   void _() {};
@@ -47,8 +47,9 @@ class ZMQ_Rep : public ZMQ_AbstractThread
     pollables[2].socket = ps_action;
     pollables[2].events = ZMQ_POLLIN;
     
+    int not_dead = 1;
     
-    while (1) {
+    while(not_dead) {
       
       printf("\nPolling in thread %p...\n", QThread::currentThread());
       
@@ -82,11 +83,36 @@ class ZMQ_Rep : public ZMQ_AbstractThread
             errchk(zmq_connect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
+          else if(action == "KILL")
+          {
+            printf("ZMQ Socket Info: Killing\n");
+            not_dead = 0;
+          }
           else
             send_string(ps_action, QString("NOPE"), 0);
         }
       }
     }
+    
+    send_string(ps_action, QString("DEAD"), 0);
+    
+    ///
+    // Close sockets (except for s_action, which is closed in receiving thread)
+    
+    // Main socket and fake request socket
+    errchk(zmq_close(ps_actual));
+    errchk(zmq_close(s_fake));
+    
+    // Socket to get reply from user code and send to actual
+    errchk(zmq_close(ps_reply));
+    errchk(zmq_close(s_reply));
+    
+    // Socket to stop and bind or connect or some other action
+    errchk(zmq_close(ps_action));
+    // errchk(zmq_close(s_action));  (will be closed in receiving thread)
+    
+    
+    exit(0);
   }
   
 signals:
@@ -112,6 +138,11 @@ public slots:
     
     send_array(s_action, (QStringList() << action << payload));
     QStringList result = recv_array(s_action);
+    
+    // If thread is dead, close this socket - all others closed in thread
+    if(result[0] == "DEAD")
+      errchk(zmq_close(s_action));
+    
     printf("Result: %s\n", result[0].toLocal8Bit().data());
   }
   
@@ -120,6 +151,9 @@ public slots:
   
   void connect(const QString& endpt)
   { action("CONN", endpt); }
+  
+  void stop()
+  { action("KILL", QString("")); }
   
 private:
   

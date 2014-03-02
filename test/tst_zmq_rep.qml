@@ -26,6 +26,8 @@ Item {
       wait(500)
       subject.fakeRequest(["this","is","a","fake","request"])
       wait(500)
+      subject.stop()
+      wait(500)
     }
   }
 }

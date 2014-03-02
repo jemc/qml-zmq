@@ -1,13 +1,13 @@
 
-#ifndef QML_ZMQ_ABSTRACT_THREAD_H
-#define QML_ZMQ_ABSTRACT_THREAD_H
+#ifndef QML_ZMQ_ABSTRACT_SOCKET_THREAD_H
+#define QML_ZMQ_ABSTRACT_SOCKET_THREAD_H
 
 #include <QtQml>
 
 #include <zmq.h>
 
 
-class ZMQ_AbstractThread : public QThread
+class ZMQ_AbstractSocketThread : public QThread
 {
   Q_OBJECT
   void _() {};
