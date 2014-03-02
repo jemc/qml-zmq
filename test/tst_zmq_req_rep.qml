@@ -37,5 +37,15 @@ Item {
       wait(100)
       compare(req.lastReply, ["multi","part","message"])
     }
+    
+    function test_binds() {
+      compare(rep.binds, ["ipc:///tmp/test"])
+      rep.bind("ipc:///tmp/other")
+      compare(rep.binds, ["ipc:///tmp/test", "ipc:///tmp/other"])
+      rep.bind("ipc:///tmp/other")
+      compare(rep.binds, ["ipc:///tmp/test", "ipc:///tmp/other"])
+      rep.unbind("ipc:///tmp/other")
+      compare(rep.binds, ["ipc:///tmp/test"])
+    }
   }
 }

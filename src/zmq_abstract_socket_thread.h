@@ -125,10 +125,10 @@ public slots:
   }
   
   void bind(const QString& endpt)
-  { action("BIND", endpt); }
+  { action("BIND", endpt); m_binds.removeAll(endpt); m_binds.append(endpt); }
   
   void unbind(const QString& endpt)
-  { action("UNBI", endpt); }
+  { action("UNBI", endpt); m_binds.removeAll(endpt); }
   
   void connect(const QString& endpt)
   { action("CONN", endpt); }
@@ -201,12 +201,8 @@ public:
   
   void setBinds(QStringList binds)
   {
-    for (int i = 0; i < m_binds.size(); ++i)
-      unbind(m_binds[i]);
-    
-    m_binds = binds;
-    for (int i = 0; i < m_binds.size(); ++i)
-      bind(m_binds[i]);
+    for(int i = 0; i < m_binds.size(); ++i) unbind(m_binds[i]);
+    for(int i = 0; i <   binds.size(); ++i)   bind(binds[i]);
   }
   
   QStringList connects() { return m_connects; }
