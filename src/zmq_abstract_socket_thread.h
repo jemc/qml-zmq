@@ -12,45 +12,30 @@
 class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
 {
   Q_OBJECT
+  
+  Q_PROPERTY(QStringList binds READ binds WRITE setBinds NOTIFY bindsChanged)
+  
   void _() {};
   
   virtual void* make_socket(void* context) = 0;
   
   void run() Q_DECL_OVERRIDE
   {
-    // Context from which all of this thread's sockets spring
-    void *context = zmq_ctx_new();
+    void* context = zmq_ctx_new();
     
-    // Array of pollable items
     int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
     
-    // Main socket and fake receive socket
-    void *ps_actual = make_socket(context);
+    // Main socket
+    void* ps_actual = make_socket(context);
+    
+    // Make all sockets pollable
     pollables[0].socket = ps_actual;
     pollables[0].events = ZMQ_POLLIN;
-    
-    // Socket to get send from user code and send to actual
-    void *ps_send = zmq_socket(context, ZMQ_PULL);
-           s_send = zmq_socket(context, ZMQ_PUSH);
-    zmq_bind  (ps_send, "inproc://s_send");
-    zmq_connect(s_send, "inproc://s_send");
     pollables[1].socket = ps_send;
     pollables[1].events = ZMQ_POLLIN;
-    
-    // Socket to stop and bind or connect or some other action
-    void *ps_action = zmq_socket(context, ZMQ_REP);
-           s_action = zmq_socket(context, ZMQ_REQ);
-    zmq_bind  (ps_action, "inproc://s_action");
-    zmq_connect(s_action, "inproc://s_action");
     pollables[2].socket = ps_action;
     pollables[2].events = ZMQ_POLLIN;
-    
-    // Socket to stop and bind or connect or some other action
-    void *ps_kill = zmq_socket(context, ZMQ_PULL);
-           s_kill = zmq_socket(context, ZMQ_PUSH);
-    zmq_bind  (ps_kill, "inproc://s_kill");
-    zmq_connect(s_kill, "inproc://s_kill");
     pollables[3].socket = ps_kill;
     pollables[3].events = ZMQ_POLLIN;
     
@@ -83,11 +68,25 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
             errchk("run, zmq_bind", zmq_bind(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
+          else if(action == "UNBI")
+          {
+            c_string = string.toLocal8Bit().data();
+            // printf("ZMQ Socket Info: Unbinding on %s\n", c_string);
+            errchk("run, zmq_unbind", zmq_unbind(ps_actual, c_string));
+            send_string(ps_action, QString("OKAY"), 0);
+          }
           else if(action == "CONN")
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Connecting to %s\n", c_string);
             errchk("run, zmq_connect", zmq_connect(ps_actual, c_string));
+            send_string(ps_action, QString("OKAY"), 0);
+          }
+          else if(action == "DSCN")
+          {
+            c_string = string.toLocal8Bit().data();
+            // printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
+            errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else
@@ -101,20 +100,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
       }
     }
     
-    ///
-    // ZMQ Cleanup
-    
-    errchk("run, zmq_close ps_actual", zmq_close(ps_actual));
-    
-    errchk("run, zmq_close ps_send"  , zmq_close(ps_send));
-    errchk("run, zmq_close s_send"   , zmq_close(s_send));   s_send   = NULL;
-    
-    errchk("run, zmq_close ps_action", zmq_close(ps_action));
-    errchk("run, zmq_close s_action" , zmq_close(s_action)); s_action = NULL;
-    
-    errchk("run, zmq_close ps_kill",   zmq_close(ps_kill));
-    errchk("run, zmq_close s_kill" ,   zmq_close(s_kill));   s_kill   = NULL;
-    
+    zmq_close(ps_actual);
     zmq_ctx_destroy(context);
     
     exit(0);
@@ -123,6 +109,8 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
 signals:
   
   void receive(const QStringList& message);
+  
+  void bindsChanged();
   
 public slots:
   
@@ -135,8 +123,14 @@ public slots:
   void bind(const QString& endpt)
   { action("BIND", endpt); }
   
+  void unbind(const QString& endpt)
+  { action("UNBI", endpt); }
+  
   void connect(const QString& endpt)
   { action("CONN", endpt); }
+  
+  void disconnect(const QString& endpt)
+  { action("DSCN", endpt); }
   
   void stop()
   {
@@ -150,9 +144,65 @@ public slots:
   
 private:
   
-  void* s_send   = NULL;
-  void* s_action = NULL;
-  void* s_kill   = NULL;
+  void* ps_context = NULL;
+  
+  void* ps_send   = NULL;
+  void*  s_send   = NULL;
+  void* ps_action = NULL;
+  void*  s_action = NULL;
+  void* ps_kill   = NULL;
+  void*  s_kill   = NULL;
+  
+  void make_inproc_sockets()
+  {
+    ps_context = zmq_ctx_new();
+    
+    // Socket to get send from user code and send to actual
+    ps_send = zmq_socket(ps_context, ZMQ_PULL);
+     s_send = zmq_socket(ps_context, ZMQ_PUSH);
+    zmq_bind  (ps_send, "inproc://s_send");
+    zmq_connect(s_send, "inproc://s_send");
+    
+    // Socket to stop and bind or connect or some other action
+    ps_action = zmq_socket(ps_context, ZMQ_REP);
+     s_action = zmq_socket(ps_context, ZMQ_REQ);
+    zmq_bind  (ps_action, "inproc://s_action");
+    zmq_connect(s_action, "inproc://s_action");
+    
+    // Socket to kill the thread
+    ps_kill = zmq_socket(ps_context, ZMQ_PULL);
+     s_kill = zmq_socket(ps_context, ZMQ_PUSH);
+    zmq_bind  (ps_kill, "inproc://s_kill");
+    zmq_connect(s_kill, "inproc://s_kill");
+  }
+  
+  void destroy_inproc_sockets()
+  {
+    zmq_close(ps_send);   ps_send   = NULL;
+    zmq_close (s_send);    s_send   = NULL;
+    zmq_close(ps_action); ps_action = NULL;
+    zmq_close (s_action);  s_action = NULL;
+    zmq_close(ps_kill);   ps_kill   = NULL;
+    zmq_close (s_kill);    s_kill   = NULL;
+    
+    zmq_ctx_destroy(ps_context);
+  }
+  
+  QStringList m_binds;
+  
+public:
+  
+  QStringList binds() { return m_binds; }
+  
+  void setBinds(QStringList binds)
+  {
+    for (int i = 0; i < m_binds.size(); ++i)
+      unbind(m_binds[i]);
+    
+    m_binds = binds;
+    for (int i = 0; i < m_binds.size(); ++i)
+      bind(m_binds[i]);
+  }
   
 protected:
   
@@ -171,8 +221,10 @@ protected:
   
 public:
   
-  ZMQ_AbstractSocketThread() { start(); };
-  ~ZMQ_AbstractSocketThread() { stop(); };
+  
+  
+  ZMQ_AbstractSocketThread() { make_inproc_sockets(); start(); };
+  ~ZMQ_AbstractSocketThread() { stop(); destroy_inproc_sockets(); };
   
 };
 

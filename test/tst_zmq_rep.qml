@@ -13,6 +13,7 @@ Item {
     property var reply:   []
     
     ZMQ_Rep { id: rep
+      binds: "ipc:///tmp/test"
       onReceive: send(message)
     }
     
@@ -21,8 +22,8 @@ Item {
     }
     
     function test_it() {
-      rep.bind("ipc:///tmp/test")
       req.connect("ipc:///tmp/test")
+      wait(500)
       
       req.send("single-part message")
       wait(500)
