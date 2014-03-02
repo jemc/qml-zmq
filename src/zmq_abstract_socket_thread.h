@@ -120,20 +120,6 @@ public slots:
     send_array(s_send, payload);
   }
   
-  void action(const char* action, const QString& payload)
-  {
-    // printf("Action in thread %p...\n", QThread::currentThread());
-    
-    send_array(s_action, (QStringList() << action << payload));
-    QStringList result = recv_array(s_action);
-    
-    // If thread is dead, close this socket - all others closed in thread
-    if(result[0] == "DEAD")
-      errchk(zmq_close(s_action));
-    
-    // printf("Result: %s\n", result[0].toLocal8Bit().data());
-  }
-  
   void bind(const QString& endpt)
   { action("BIND", endpt); }
   
@@ -149,6 +135,20 @@ private:
   void* s_action;
   
 protected:
+  
+  void action(const char* action, const QString& payload)
+  {
+    // printf("Action in thread %p...\n", QThread::currentThread());
+    
+    send_array(s_action, (QStringList() << action << payload));
+    QStringList result = recv_array(s_action);
+    
+    // If thread is dead, close this socket - all others closed in thread
+    if(result[0] == "DEAD")
+      errchk(zmq_close(s_action));
+    
+    // printf("Result: %s\n", result[0].toLocal8Bit().data());
+  }
   
   int errchk(int err)
   { if(err==-1) printf("ZMQ Socket Error: %s\n", zmq_strerror(errno));
