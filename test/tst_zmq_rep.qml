@@ -24,19 +24,10 @@ Item {
     }
     
     function test_it() {
-      rep.start()
-      req.start()
-      wait(500)
-      
       rep.bind("ipc:///tmp/test")
       req.connect("ipc:///tmp/test")
-      wait(500)
       
       req.send(["this","is","a","fake","request"])
-      wait(500)
-      
-      rep.stop()
-      req.stop()
       wait(500)
     }
   }

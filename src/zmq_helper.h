@@ -13,14 +13,21 @@ class ZMQ_Helper
   
 protected:
   
-  int errchk(int err)
-  { if(err==-1) printf("ZMQ Socket Error: %s\n", zmq_strerror(errno));
-    return err; }
+  int errchk(const char* description, int err)
+  {
+    if(err==-1)
+    {
+      printf("ZMQ Socket Error in %s: %s\n", description, zmq_strerror(errno));
+      exit(1);
+    }
+    return err;
+  }
   
   int send_string(void* socket, const QString& string, int flags)
   {
     QByteArray bytes = string.toLocal8Bit();
-    return errchk(zmq_send(socket, bytes.data(), bytes.count()+1, flags));
+    return errchk("send_string, zmq_send",
+                  zmq_send(socket, bytes.data(), bytes.count()+1, flags));
   }
   
   int send_array(void* socket, const QStringList& list)
@@ -28,9 +35,9 @@ protected:
     int list_size = list.size()-1;
     
     for (int i = 0; i < list_size; ++i)
-      errchk(send_string(socket, list[i], ZMQ_SNDMORE));
+      send_string(socket, list[i], ZMQ_SNDMORE);
     
-    return errchk(send_string(socket, list[list_size], 0));
+    return send_string(socket, list[list_size], 0);
   }
   
   QString recv_string(void* socket)
@@ -38,10 +45,10 @@ protected:
     QString string;
     zmq_msg_t msg;
     
-    errchk(zmq_msg_init(&msg));
-    errchk(zmq_recvmsg(socket, &msg, 0));
+    errchk("recv_string, zmq_msg_init", zmq_msg_init(&msg));
+    errchk("recv_string, zmq_recvmsg", zmq_recvmsg(socket, &msg, 0));
     string = (char*)zmq_msg_data(&msg);
-    errchk(zmq_msg_close(&msg));
+    errchk("recv_string, zmq_msg_close", zmq_msg_close(&msg));
     
     return string;
   }

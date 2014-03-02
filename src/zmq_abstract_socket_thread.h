@@ -22,7 +22,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
     void *context = zmq_ctx_new();
     
     // Array of pollable items
-    int num_pollables = 3;
+    int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
     
     // Main socket and fake receive socket
@@ -45,6 +45,14 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
     zmq_connect(s_action, "inproc://s_action");
     pollables[2].socket = ps_action;
     pollables[2].events = ZMQ_POLLIN;
+    
+    // Socket to stop and bind or connect or some other action
+    void *ps_kill = zmq_socket(context, ZMQ_PULL);
+           s_kill = zmq_socket(context, ZMQ_PUSH);
+    zmq_bind  (ps_kill, "inproc://s_kill");
+    zmq_connect(s_kill, "inproc://s_kill");
+    pollables[3].socket = ps_kill;
+    pollables[3].events = ZMQ_POLLIN;
     
     int not_dead = 1;
     
@@ -72,40 +80,42 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Binding on %s\n", c_string);
-            errchk(zmq_bind(ps_actual, c_string));
+            errchk("run, zmq_bind", zmq_bind(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else if(action == "CONN")
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Connecting to %s\n", c_string);
-            errchk(zmq_connect(ps_actual, c_string));
+            errchk("run, zmq_connect", zmq_connect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
-          }
-          else if(action == "KILL")
-          {
-            // printf("ZMQ Socket Info: Killing\n");
-            not_dead = 0;
           }
           else
             send_string(ps_action, QString("NOPE"), 0);
         }
+        else if(pollables[3].revents) { // ps_kill
+          recv_array(ps_kill); // Clear the incoming message
+          // printf("ZMQ Socket Info: Killing\n");
+          not_dead = 0;
+        }
       }
     }
     
-    send_string(ps_action, QString("DEAD"), 0);
-    
     ///
-    // Close sockets (except for s_action, which is closed in receiving thread)
+    // ZMQ Cleanup
     
-    errchk(zmq_close(ps_actual));
+    errchk("run, zmq_close ps_actual", zmq_close(ps_actual));
     
-    errchk(zmq_close(ps_send));
-    errchk(zmq_close(s_send));
+    errchk("run, zmq_close ps_send"  , zmq_close(ps_send));
+    errchk("run, zmq_close s_send"   , zmq_close(s_send));   s_send   = NULL;
     
-    errchk(zmq_close(ps_action));
-    // errchk(zmq_close(s_action));  (will be closed in receiving thread)
+    errchk("run, zmq_close ps_action", zmq_close(ps_action));
+    errchk("run, zmq_close s_action" , zmq_close(s_action)); s_action = NULL;
     
+    errchk("run, zmq_close ps_kill",   zmq_close(ps_kill));
+    errchk("run, zmq_close s_kill" ,   zmq_close(s_kill));   s_kill   = NULL;
+    
+    zmq_ctx_destroy(context);
     
     exit(0);
   }
@@ -129,28 +139,41 @@ public slots:
   { action("CONN", endpt); }
   
   void stop()
-  { action("KILL", QString("")); }
+  {
+    if(s_kill != NULL)
+    {
+      send_string(s_kill, QString(""), 0);
+      quit();
+      wait();
+    }
+  }
   
 private:
   
-  void* s_send;
-  void* s_action;
+  void* s_send   = NULL;
+  void* s_action = NULL;
+  void* s_kill   = NULL;
   
 protected:
   
   void action(const char* action, const QString& payload)
   {
-    // printf("Action in thread %p...\n", QThread::currentThread());
-    
-    send_array(s_action, (QStringList() << action << payload));
-    QStringList result = recv_array(s_action);
-    
-    // If thread is dead, close this socket - all others closed in thread
-    if(result[0] == "DEAD")
-      errchk(zmq_close(s_action));
-    
-    // printf("Result: %s\n", result[0].toLocal8Bit().data());
+    if(s_action != NULL)
+    {
+      // printf("Action in thread %p...\n", QThread::currentThread());
+      
+      send_array(s_action, (QStringList() << action << payload));
+      QStringList result = recv_array(s_action);
+      
+      // printf("Result: %s\n", result[0].toLocal8Bit().data());
+    }
   }
+  
+public:
+  
+  ZMQ_AbstractSocketThread() { start(); };
+  ~ZMQ_AbstractSocketThread() { stop(); };
+  
 };
 
 #endif
