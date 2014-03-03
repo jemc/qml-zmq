@@ -46,6 +46,10 @@ Item {
       compare(rep.binds, ["ipc:///tmp/test", "ipc:///tmp/other"])
       rep.unbind("ipc:///tmp/other")
       compare(rep.binds, ["ipc:///tmp/test"])
+      rep.binds = ["ipc:///tmp/test", "ipc:///tmp/other"]
+      compare(rep.binds, ["ipc:///tmp/test", "ipc:///tmp/other"])
+      rep.binds = ["ipc:///tmp/test"]
+      compare(rep.binds, ["ipc:///tmp/test"])
     }
     
     function test_connects() {
@@ -55,6 +59,10 @@ Item {
       rep.connect("ipc:///tmp/other")
       compare(rep.connects, ["ipc:///tmp/other"])
       rep.disconnect("ipc:///tmp/other")
+      compare(rep.connects, [])
+      rep.connects = ["ipc:///tmp/other"]
+      compare(rep.connects, ["ipc:///tmp/other"])
+      rep.connects = []
       compare(rep.connects, [])
     }
   }

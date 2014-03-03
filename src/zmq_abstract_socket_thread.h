@@ -89,7 +89,8 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
-            errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
+            // errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
+            zmq_disconnect(ps_actual, c_string);
             send_string(ps_action, QString("OKAY"), 0);
           }
           else
@@ -123,22 +124,22 @@ public slots:
   
   void bind(const QString& endpt)
   { action("BIND", endpt);
-    m_binds.removeAll(endpt); m_binds.append(endpt); 
+    m_binds.removeAll(endpt); m_binds.append(endpt);
     emit bindsChanged(); }
   
   void unbind(const QString& endpt)
   { action("UNBI", endpt);
-    m_binds.removeAll(endpt); 
+    m_binds.removeAll(endpt);
     emit bindsChanged(); }
   
   void connect(const QString& endpt)
   { action("CONN", endpt);
-    m_conns.removeAll(endpt); m_conns.append(endpt); 
+    m_conns.removeAll(endpt); m_conns.append(endpt);
     emit connectsChanged(); }
   
   void disconnect(const QString& endpt)
   { action("DSCN", endpt);
-    m_conns.removeAll(endpt); 
+    m_conns.removeAll(endpt);
     emit connectsChanged(); }
   
   void stop()
@@ -202,16 +203,18 @@ public:
   
   void setBinds(QStringList binds)
   {
-    foreach(const QString &str, m_binds.toSet()-binds.toSet()) unbind(str);
-    foreach(const QString &str, binds.toSet()-m_binds.toSet())   bind(str);
+    foreach(const QString &s, m_binds.toSet()-binds.toSet()) action("UNBI", s);
+    foreach(const QString &s, binds.toSet()-m_binds.toSet()) action("BIND", s);
+    m_binds = binds;
   }
   
   QStringList connects() { return m_conns; }
   
   void setConnects(QStringList conns)
   {
-    foreach(const QString &str, m_conns.toSet()-conns.toSet()) disconnect(str);
-    foreach(const QString &str, conns.toSet()-m_conns.toSet())    connect(str);
+    foreach(const QString &s, m_conns.toSet()-conns.toSet()) action("DSCN", s);
+    foreach(const QString &s, conns.toSet()-m_conns.toSet()) action("CONN", s);
+    m_conns = conns;
   }
   
 protected:
