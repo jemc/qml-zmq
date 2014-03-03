@@ -34,5 +34,26 @@ class ZMQ_Sub : public ZMQ_SubscribingSocketThread
   void* make_socket(void* context) { return zmq_socket(context, ZMQ_SUB); };
 };
 
+class ZMQ_XPub : public ZMQ_AbstractSocketThread
+{
+  Q_OBJECT
+  void* make_socket(void* context) { return zmq_socket(context, ZMQ_XPUB); };
+};
+
+class ZMQ_XSub : public ZMQ_SubscribingSocketThread
+{
+  Q_OBJECT
+  void* make_socket(void* context) { return zmq_socket(context, ZMQ_XSUB); };
+  
+protected:
+  
+  virtual void pm_subscribe(const QString& topic)
+  { send(QStringList(QString("%01").append(topic).append("%%"))); }
+  
+  virtual void pm_unsubscribe(const QString& topic)
+  { send(QStringList(QString("%00").append(topic).append("%%"))); }
+  
+};
+
 
 #endif

@@ -25,9 +25,19 @@ protected:
   
   int send_string(void* socket, const QString& string, int flags)
   {
-    QByteArray bytes = string.toLocal8Bit();
-    return errchk("send_string, zmq_send",
-                  zmq_send(socket, bytes.data(), bytes.count()+1, flags));
+    QByteArray bytes;
+    bytes = string.toLatin1();
+    int drop_term = 0;
+    
+    // "%%" at the end indicates not to transmit a null terminator
+    if(bytes.endsWith("%%"))
+    { drop_term = 1; bytes.chop(2); }
+    
+    // Un-escape all non-latin1 characters from percent encoding
+    bytes = QByteArray::fromPercentEncoding(bytes);
+    
+    return errchk("send_string, zmq_send", zmq_send(socket, 
+                  bytes.data(), bytes.count()+1-drop_term, flags));
   }
   
   int send_array(void* socket, const QStringList& list)
@@ -42,15 +52,34 @@ protected:
   
   QString recv_string(void* socket)
   {
-    QString string;
+    #define LATIN1_CHARS \
+    " !\"#$&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+    
+    const char* c_string;
+    size_t c_size;
+    QByteArray bytes;
+    int drop_term = 0;
     zmq_msg_t msg;
     
     errchk("recv_string, zmq_msg_init", zmq_msg_init(&msg));
     errchk("recv_string, zmq_recvmsg", zmq_recvmsg(socket, &msg, 0));
-    string = (char*)zmq_msg_data(&msg);
+    c_string = (char*)zmq_msg_data(&msg);
+    c_size = zmq_msg_size(&msg);
+    bytes = QByteArray(c_string, c_size);
+    
+    // Drop null terminator if present
+    if(c_string[c_size-1]==0)
+    { drop_term = 1; bytes.chop(1); }
+    
+    // Escape all non-latin1 characters with percent encoding
+    bytes = bytes.toPercentEncoding(LATIN1_CHARS);
+    
+    // Append "%%" to indicate no null terminator was received
+    if(!drop_term) bytes.append("%%");
+    
     errchk("recv_string, zmq_msg_close", zmq_msg_close(&msg));
     
-    return string;
+    return QString::fromLatin1(bytes);
   }
   
   QStringList recv_array(void* socket)

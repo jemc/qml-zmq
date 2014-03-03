@@ -20,10 +20,12 @@ class ZMQ_SubscribingSocketThread : public ZMQ_AbstractSocketThread
   
   QStringList m_subs;
   
-  void pm_subscribe(const QString& topic)
+protected:
+  
+  virtual void pm_subscribe(const QString& topic)
   { action("SSOP", QString("%1=%2").arg(ZMQ_SUBSCRIBE).arg(topic)); }
   
-  void pm_unsubscribe(const QString& topic)
+  virtual void pm_unsubscribe(const QString& topic)
   { action("SSOP", QString("%1=%2").arg(ZMQ_UNSUBSCRIBE).arg(topic)); }
   
 signals:

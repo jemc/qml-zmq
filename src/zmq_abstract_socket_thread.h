@@ -75,7 +75,9 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Unbinding on %s\n", c_string);
-            errchk("run, zmq_unbind", zmq_unbind(ps_actual, c_string));
+            // TODO: replace error checking somehow
+            // errchk("run, zmq_unbind", zmq_unbind(ps_actual, c_string));
+            zmq_unbind(ps_actual, c_string);
             send_string(ps_action, QString("OKAY"), 0);
           }
           else if(action == "CONN")
@@ -131,7 +133,7 @@ signals:
 public slots:
   
   void send(const QStringList& payload)
-  { send_array(s_send, payload); }
+  { if(s_send!=NULL) send_array(s_send, payload); }
   
   void bind(const QString& endpt)
   { action("BIND", endpt);
