@@ -89,8 +89,19 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
+            // TODO: replace error checking somehow
             // errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
             zmq_disconnect(ps_actual, c_string);
+            send_string(ps_action, QString("OKAY"), 0);
+          }
+          else if(action == "SSOP")
+          {
+            QStringList parts = string.split("=");
+            int code  = parts[0].toInt();
+            c_string  = parts[1].toLocal8Bit().data();
+            // printf("ZMQ Socket Info: Setting option %d to %s\n", code, c_string);
+            errchk("run, zmq_setsockopt",
+                   zmq_setsockopt(ps_actual, code, c_string, parts[1].count()));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else
@@ -147,6 +158,9 @@ public slots:
     { send_string(s_kill, QString(""), 0);
       quit();
       wait(); } }
+  
+  void subscribe(const QString& topic)
+  { action("SSOP", QString("%1=%2").arg(ZMQ_SUBSCRIBE).arg(topic)); }
   
 private:
   
