@@ -24,9 +24,9 @@ Item {
       property var lastMessage: []
       
       connects: "ipc:///tmp/test"
-      // subscriptions: "topic"
+      // subscriptions: "topic" // TODO: make this work
       onReceive: lastMessage = message
-      Component.onCompleted: send(["%01topic%%"])
+      Component.onCompleted: subscribe("topic")
     }
     
     

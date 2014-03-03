@@ -46,7 +46,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
     
     while(not_dead) {
       
-      // printf("\nPolling in thread %p...\n", QThread::currentThread());
+      // qDebug() << "> Polling in thread" << QThread::currentThread();
       
       if(zmq_poll(pollables, num_pollables, -1))
       {
@@ -115,6 +115,8 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           not_dead = 0;
         }
       }
+      
+      // qDebug() << "> Polling end with not_dead =" << not_dead;
     }
     
     zmq_close(ps_actual);
@@ -159,7 +161,8 @@ public slots:
   { if(s_kill != NULL)
     { send_string(s_kill, QString(""), 0);
       quit();
-      wait(); } }
+      wait();
+      destroy_inproc_sockets(); } }
   
 private:
   
@@ -250,7 +253,7 @@ public:
   
   
   ZMQ_AbstractSocketThread() { make_inproc_sockets(); start(); };
-  ~ZMQ_AbstractSocketThread() { stop(); destroy_inproc_sockets(); };
+  ~ZMQ_AbstractSocketThread() { stop(); };
   
 };
 

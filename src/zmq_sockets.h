@@ -10,6 +10,18 @@
 #include "zmq_subscribing_socket_thread.h"
 
 
+class ZMQ_Push : public ZMQ_AbstractSocketThread
+{
+  Q_OBJECT
+  void* make_socket(void* context) { return zmq_socket(context, ZMQ_PUSH); };
+};
+
+class ZMQ_Pull : public ZMQ_AbstractSocketThread
+{
+  Q_OBJECT
+  void* make_socket(void* context) { return zmq_socket(context, ZMQ_PULL); };
+};
+
 class ZMQ_Req : public ZMQ_AbstractSocketThread
 {
   Q_OBJECT

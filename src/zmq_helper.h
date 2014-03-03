@@ -36,18 +36,19 @@ protected:
     // Un-escape all non-latin1 characters from percent encoding
     bytes = QByteArray::fromPercentEncoding(bytes);
     
+    
     return errchk("send_string, zmq_send", zmq_send(socket, 
                   bytes.data(), bytes.count()+1-drop_term, flags));
   }
   
-  int send_array(void* socket, const QStringList& list)
+  int send_array(void* socket, const QStringList& list, int flags=0)
   {
     int list_size = list.size()-1;
     
     for (int i = 0; i < list_size; ++i)
       send_string(socket, list[i], ZMQ_SNDMORE);
     
-    return send_string(socket, list[list_size], 0);
+    return send_string(socket, list[list_size], flags);
   }
   
   QString recv_string(void* socket)
