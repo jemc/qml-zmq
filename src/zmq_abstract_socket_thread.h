@@ -81,17 +81,15 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           else if(action == "CONN")
           {
             c_string = string.toLocal8Bit().data();
-            printf("ZMQ Socket Info: Connecting to %s\n", c_string);
+            // printf("ZMQ Socket Info: Connecting to %s\n", c_string);
             errchk("run, zmq_connect", zmq_connect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else if(action == "DSCN")
           {
             c_string = string.toLocal8Bit().data();
-            printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
-            // TODO: some kind of error checking on disconnect
-            // errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
-            zmq_disconnect(ps_actual, c_string);
+            // printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
+            errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
             send_string(ps_action, QString("OKAY"), 0);
           }
           else
@@ -121,32 +119,33 @@ signals:
 public slots:
   
   void send(const QStringList& payload)
-  {
-    // printf("Send in thread %p...\n", QThread::currentThread());
-    send_array(s_send, payload);
-  }
+  { send_array(s_send, payload); }
   
   void bind(const QString& endpt)
-  { action("BIND", endpt); m_binds.removeAll(endpt); m_binds.append(endpt); }
+  { action("BIND", endpt);
+    m_binds.removeAll(endpt); m_binds.append(endpt); 
+    emit bindsChanged(); }
   
   void unbind(const QString& endpt)
-  { action("UNBI", endpt); m_binds.removeAll(endpt); }
+  { action("UNBI", endpt);
+    m_binds.removeAll(endpt); 
+    emit bindsChanged(); }
   
   void connect(const QString& endpt)
-  { action("CONN", endpt); m_conns.removeAll(endpt); m_conns.append(endpt); }
+  { action("CONN", endpt);
+    m_conns.removeAll(endpt); m_conns.append(endpt); 
+    emit connectsChanged(); }
   
   void disconnect(const QString& endpt)
-  { action("DSCN", endpt); m_conns.removeAll(endpt); }
+  { action("DSCN", endpt);
+    m_conns.removeAll(endpt); 
+    emit connectsChanged(); }
   
   void stop()
-  {
-    if(s_kill != NULL)
-    {
-      send_string(s_kill, QString(""), 0);
+  { if(s_kill != NULL)
+    { send_string(s_kill, QString(""), 0);
       quit();
-      wait();
-    }
-  }
+      wait(); } }
   
 private:
   
@@ -203,16 +202,16 @@ public:
   
   void setBinds(QStringList binds)
   {
-    for(int i = 0; i < m_binds.size(); ++i) unbind(m_binds[i]);
-    for(int i = 0; i <   binds.size(); ++i)   bind(binds[i]);
+    foreach(const QString &str, m_binds.toSet()-binds.toSet()) unbind(str);
+    foreach(const QString &str, binds.toSet()-m_binds.toSet())   bind(str);
   }
   
   QStringList connects() { return m_conns; }
   
   void setConnects(QStringList conns)
   {
-    for(int i = 0; i < m_conns.size(); ++i) disconnect(m_conns[i]);
-    for(int i = 0; i <   conns.size(); ++i)    connect(conns[i]);
+    foreach(const QString &str, m_conns.toSet()-conns.toSet()) disconnect(str);
+    foreach(const QString &str, conns.toSet()-m_conns.toSet())    connect(str);
   }
   
 protected:
