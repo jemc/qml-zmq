@@ -159,9 +159,6 @@ public slots:
       quit();
       wait(); } }
   
-  void subscribe(const QString& topic)
-  { action("SSOP", QString("%1=%2").arg(ZMQ_SUBSCRIBE).arg(topic)); }
-  
 private:
   
   void* ps_context = NULL;

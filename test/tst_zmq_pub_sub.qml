@@ -21,16 +21,37 @@ Item {
       property var lastMessage:   []
       
       connects: "ipc:///tmp/test"
+      subscriptions: "topic"
       onReceive: lastMessage = message
     }
     
     
-    function test_message() {
+    function test_messages() {
       wait(100)
-      sub.subscribe("topics")
-      pub.send(["topics.x.y","message"])
+      
+      pub.send(["topic.x.y","message"])
       wait(100)
-      compare(sub.lastMessage, ["topics.x.y","message"])
+      compare(sub.lastMessage, ["topic.x.y","message"])
+      
+      pub.send(["topic.zzz","message2"])
+      wait(100)
+      compare(sub.lastMessage, ["topic.zzz","message2"])
     }
+    
+    
+    function test_subscriptions() {
+      compare(sub.subscriptions, ["topic"])
+      sub.subscribe("other")
+      compare(sub.subscriptions, ["topic", "other"])
+      sub.subscribe("other")
+      compare(sub.subscriptions, ["topic", "other"])
+      sub.unsubscribe("other")
+      compare(sub.subscriptions, ["topic"])
+      sub.subscriptions = ["topic", "other"]
+      compare(sub.subscriptions, ["topic", "other"])
+      sub.subscriptions = ["topic"]
+      compare(sub.subscriptions, ["topic"])
+    }
+    
   }
 }
