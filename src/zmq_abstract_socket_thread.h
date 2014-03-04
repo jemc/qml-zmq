@@ -13,13 +13,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
 {
   Q_OBJECT
   
-  Q_PROPERTY(QStringList binds    READ binds    WRITE setBinds \
-                                  NOTIFY bindsChanged)
-  Q_PROPERTY(QStringList connects READ connects WRITE setConnects \
-                                  NOTIFY connectsChanged)
-  
   Q_PROPERTY(int socketType MEMBER socketType NOTIFY socketTypeChanged)
-  
   
   void _() {};
   
@@ -136,34 +130,12 @@ signals:
   
   void receive(const QStringList& message);
   
-  void bindsChanged();
-  void connectsChanged();
   void socketTypeChanged();
   
 public slots:
   
   void send(const QStringList& payload)
   { if(s_send!=NULL) send_array(s_send, payload); }
-  
-  void bind(const QString& endpt)
-  { action("BIND", endpt);
-    m_binds.removeAll(endpt); m_binds.append(endpt);
-    emit bindsChanged(); }
-  
-  void unbind(const QString& endpt)
-  { action("UNBI", endpt);
-    m_binds.removeAll(endpt);
-    emit bindsChanged(); }
-  
-  void connect(const QString& endpt)
-  { action("CONN", endpt);
-    m_conns.removeAll(endpt); m_conns.append(endpt);
-    emit connectsChanged(); }
-  
-  void disconnect(const QString& endpt)
-  { action("DSCN", endpt);
-    m_conns.removeAll(endpt);
-    emit connectsChanged(); }
   
   void start()
   { make_inproc_sockets(); QThread::start(); }
@@ -221,43 +193,14 @@ private:
     zmq_ctx_destroy(ps_context);
   }
   
-  QStringList m_binds;
-  QStringList m_conns;
-  
-public:
-  
-  QStringList binds() { return m_binds; }
-  
-  void setBinds(QStringList binds)
-  {
-    // qDebug() << "setBinds";
-    foreach(const QString &s, m_binds.toSet()-binds.toSet()) action("UNBI", s);
-    foreach(const QString &s, binds.toSet()-m_binds.toSet()) action("BIND", s);
-    m_binds = binds;
-  }
-  
-  QStringList connects() { return m_conns; }
-  
-  void setConnects(QStringList conns)
-  {
-    // qDebug() << "setConnects";
-    foreach(const QString &s, m_conns.toSet()-conns.toSet()) action("DSCN", s);
-    foreach(const QString &s, conns.toSet()-m_conns.toSet()) action("CONN", s);
-    m_conns = conns;
-  }
-  
 public slots:
   
   void action(const QString& action, const QString& payload)
   {
     if(s_action != NULL)
     {
-      // printf("Action in thread %p...\n", QThread::currentThread());
-      
       send_array(s_action, (QStringList() << action << payload));
       QStringList result = recv_array(s_action);
-      
-      // printf("Result: %s\n", result[0].toLocal8Bit().data());
     }
   }
   
