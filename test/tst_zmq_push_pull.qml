@@ -11,21 +11,23 @@ Item {
     name: "ZMQ_Push,Pull"
     
     
-    ZMQ_Push {
+    ZPush {
       id: push
       binds: "ipc:///tmp/test_push_pull"
     }
     
-    ZMQ_Pull {
+    ZPull {
       id: pull
-      property var lastReply:   []
-      
       connects: "ipc:///tmp/test_push_pull"
+      
+      property var lastReply:   []
       onReceive: lastReply = message
     }
     
     
     function test_messages() {
+      wait(250)
+      
       push.send("message")
       wait(100)
       compare(pull.lastReply, ["message"])
