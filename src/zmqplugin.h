@@ -14,6 +14,8 @@ class ZMQPlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri)
     {
+        qmlRegisterType<ZMQ_Toplevel> (uri, 1, 0, "ZMQ");
+        
         qmlRegisterType<ZMQ_AbstractSocket> (uri, 1, 0, "ZMQ_AbstractSocket");
         
         qmlRegisterType<ZMQ_Push>(uri, 1, 0, "ZMQ_Push");

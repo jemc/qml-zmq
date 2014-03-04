@@ -10,6 +10,30 @@
 #include "zmq_subscribing_socket_thread.h"
 
 
+class ZMQ_Toplevel : public QObject
+{
+  Q_OBJECT
+  Q_ENUMS(SocketTypes)
+  
+public:
+  
+  enum SocketTypes {
+    PAIR   = ZMQ_PAIR,
+    PUB    = ZMQ_PUB,
+    SUB    = ZMQ_SUB,
+    REQ    = ZMQ_REQ,
+    REP    = ZMQ_REP,
+    DEALER = ZMQ_DEALER,
+    ROUTER = ZMQ_ROUTER,
+    PULL   = ZMQ_PULL,
+    PUSH   = ZMQ_PUSH,
+    XPUB   = ZMQ_XPUB,
+    XSUB   = ZMQ_XSUB,
+    STREAM = ZMQ_STREAM
+  };
+};
+
+
 class ZMQ_AbstractSocket : public ZMQ_AbstractSocketThread
 {
   Q_OBJECT
