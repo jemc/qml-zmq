@@ -11,6 +11,10 @@ Item {
     name: "ZMQ_Pub,Sub"
     
     
+    ZPub {
+      
+    }
+    
     ZMQ_Pub {
       id: pub
       binds: "ipc:///tmp/test"
