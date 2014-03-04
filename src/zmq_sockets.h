@@ -14,87 +14,38 @@ class ZMQ_AbstractSocket : public ZMQ_AbstractSocketThread
 {
   Q_OBJECT
   
-  Q_PROPERTY(int socketType MEMBER socketType)
+  Q_PROPERTY(int socketType MEMBER socketType NOTIFY socketTypeChanged)
   
-  int socketType = ZMQ_PUB;
+signals:
   
-  void make_socket() { action("MAKE", QString::number(ZMQ_PUB)); };
+  void socketTypeChanged();
   
-public:
-  ZMQ_AbstractSocket() { make_socket(); };
 };
 
 class ZMQ_Push : public ZMQ_AbstractSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_PUSH)); };
-  
-public:
-  ZMQ_Push() { make_socket(); };
-};
+{ public: ZMQ_Push() { socketType = ZMQ_PUSH; start(); }; };
 
 class ZMQ_Pull : public ZMQ_AbstractSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_PULL)); };
-  
-public:
-  ZMQ_Pull() { make_socket(); };
-};
+{ public: ZMQ_Pull() { socketType = ZMQ_PULL; start(); }; };
 
 class ZMQ_Req : public ZMQ_AbstractSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_REQ)); };
-  
-public:
-  ZMQ_Req() { make_socket(); };
-};
+{ public: ZMQ_Req() { socketType = ZMQ_REQ; start(); }; };
 
 class ZMQ_Rep : public ZMQ_AbstractSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_REP)); };
-  
-public:
-  ZMQ_Rep() { make_socket(); };
-};
+{ public: ZMQ_Rep() { socketType = ZMQ_REP; start(); }; };
 
 class ZMQ_Pub : public ZMQ_AbstractSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_PUB)); };
-  
-public:
-  ZMQ_Pub() { make_socket(); };
-};
+{ public: ZMQ_Pub() { socketType = ZMQ_PUB; start(); }; };
 
 class ZMQ_Sub : public ZMQ_SubscribingSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_SUB)); };
-  
-public:
-  ZMQ_Sub() { make_socket(); };
-};
+{ public: ZMQ_Sub() { socketType = ZMQ_SUB; start(); }; };
 
 class ZMQ_XPub : public ZMQ_AbstractSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_XPUB)); };
-  
-public:
-  ZMQ_XPub() { make_socket(); };
-};
+{ public: ZMQ_XPub() { socketType = ZMQ_XPUB; start(); }; };
 
 class ZMQ_XSub : public ZMQ_SubscribingSocketThread
-{
-  Q_OBJECT
-  void make_socket() { action("MAKE", QString::number(ZMQ_XSUB)); };
-  
-public:
-  ZMQ_XSub() { make_socket(); };
-  
+{ public: ZMQ_XSub() { socketType = ZMQ_XSUB; start(); };
+
 protected:
   
   virtual void pm_subscribe(const QString& topic)

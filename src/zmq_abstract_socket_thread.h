@@ -20,7 +20,11 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
   
   void _() {};
   
-  virtual void make_socket() = 0;
+public:
+  
+  int socketType = 0;
+  
+private:
   
   void run() Q_DECL_OVERRIDE
   {
@@ -29,11 +33,11 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
     int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
     
-    // Main socket - create later
-    void* ps_actual = NULL;
+    // Main socket
+    void* ps_actual = zmq_socket(context, socketType);
     
     // Make all sockets pollable
-    pollables[0].socket = NULL;
+    pollables[0].socket = ps_actual;
     pollables[0].events = ZMQ_POLLIN;
     pollables[1].socket = ps_send;
     pollables[1].events = ZMQ_POLLIN;
@@ -46,7 +50,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
     
     while(not_dead) {
       
-      // qDebug() << "> Polling in thread" << QThread::currentThread();
+      // qDebug() << "> Polling in thread" << QThread::currentThread() << socketType;
       
       if(zmq_poll(pollables, num_pollables, -1))
       {
@@ -64,16 +68,7 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
           
           // printf("ZMQ Socket Action: %s\n", action.toLocal8Bit().data());
           
-          if(action == "MAKE")
-          {
-            int code = string.toInt();
-            
-            ps_actual = zmq_socket(context, code);
-            pollables[0].socket = ps_actual;
-            
-            send_string(ps_action, QString("OKAY"), 0);
-          }
-          else if(action == "BIND")
+          if(action == "BIND")
           {
             c_string = string.toLocal8Bit().data();
             // printf("ZMQ Socket Info: Binding on %s\n", c_string);
@@ -231,6 +226,7 @@ public:
   
   void setBinds(QStringList binds)
   {
+    // qDebug() << "setBinds";
     foreach(const QString &s, m_binds.toSet()-binds.toSet()) action("UNBI", s);
     foreach(const QString &s, binds.toSet()-m_binds.toSet()) action("BIND", s);
     m_binds = binds;
@@ -240,6 +236,7 @@ public:
   
   void setConnects(QStringList conns)
   {
+    // qDebug() << "setConnects";
     foreach(const QString &s, m_conns.toSet()-conns.toSet()) action("DSCN", s);
     foreach(const QString &s, conns.toSet()-m_conns.toSet()) action("CONN", s);
     m_conns = conns;
@@ -262,7 +259,7 @@ protected:
   
 public:
   
-  ZMQ_AbstractSocketThread() { start(); };
+  // ZMQ_AbstractSocketThread() { start(); };
   ~ZMQ_AbstractSocketThread() { stop(); };
   
 };

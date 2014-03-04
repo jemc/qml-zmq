@@ -11,13 +11,11 @@ Item {
     name: "ZMQ_Pub,Sub"
     
     
+    // ZMQ_Pub {
     ZPub {
-      
-    }
-    
-    ZMQ_Pub {
       id: pub
-      binds: "ipc:///tmp/test"
+      
+      Component.onCompleted: bind("ipc:///tmp/test")
     }
     
     ZMQ_Sub {
@@ -31,7 +29,8 @@ Item {
     
     
     function test_messages() {
-      wait(100)
+      // pub.bind("ipc:///tmp/test")
+      wait(250)
       
       pub.send(["topic.x.y","message"])
       wait(100)
