@@ -108,11 +108,11 @@ signals:
 // class ZMQ_Pull : public ZMQ_AbstractSocketThread
 // { public: ZMQ_Pull() { socketType = ZMQ_PULL; start(); }; };
 
-class ZMQ_Req : public ZMQ_AbstractSocketThread
-{ public: ZMQ_Req() { socketType = ZMQ_REQ; start(); }; };
+// class ZMQ_Req : public ZMQ_AbstractSocketThread
+// { public: ZMQ_Req() { socketType = ZMQ_REQ; start(); }; };
 
-class ZMQ_Rep : public ZMQ_AbstractSocketThread
-{ public: ZMQ_Rep() { socketType = ZMQ_REP; start(); }; };
+// class ZMQ_Rep : public ZMQ_AbstractSocketThread
+// { public: ZMQ_Rep() { socketType = ZMQ_REP; start(); }; };
 
 // class ZMQ_Pub : public ZMQ_AbstractSocketThread
 // { public: ZMQ_Pub() { socketType = ZMQ_PUB; start(); }; };

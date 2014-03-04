@@ -2,5 +2,7 @@ module org.jemc.qml.ZMQ
 plugin zmqplugin
 ZPush 1.0 qml/ZPush.qml
 ZPull 1.0 qml/ZPull.qml
-ZPub 1.0 qml/ZPub.qml
-ZSub 1.0 qml/ZSub.qml
+ZReq  1.0 qml/ZReq.qml
+ZRep  1.0 qml/ZRep.qml
+ZPub  1.0 qml/ZPub.qml
+ZSub  1.0 qml/ZSub.qml
