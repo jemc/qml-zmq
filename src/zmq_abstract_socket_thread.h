@@ -18,6 +18,9 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
   Q_PROPERTY(QStringList connects READ connects WRITE setConnects \
                                   NOTIFY connectsChanged)
   
+  Q_PROPERTY(int socketType MEMBER socketType NOTIFY socketTypeChanged)
+  
+  
   void _() {};
   
 public:
@@ -135,6 +138,7 @@ signals:
   
   void bindsChanged();
   void connectsChanged();
+  void socketTypeChanged();
   
 public slots:
   
