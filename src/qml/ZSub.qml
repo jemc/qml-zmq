@@ -8,56 +8,72 @@ ZMQ_Socket { socketType: ZMQ.SUB
   id: socket
   
   property var priv: QtObject {
-    function   subscribe(topic) { action("SSOP", "%1=%2".arg(ZMQ.SUBSCRIBE)  .arg(topic)) }
-    function unsubscribe(topic) { action("SSOP", "%1=%2".arg(ZMQ.UNSUBSCRIBE).arg(topic)) }
+    function    add(topic) { action("SSOP", "%1=%2".arg(ZMQ.SUBSCRIBE)  .arg(topic)) }
+    function remove(topic) { action("SSOP", "%1=%2".arg(ZMQ.UNSUBSCRIBE).arg(topic)) }
   }
   
-  function   subscribe(topic) {
-    for(var i = subscriptions.length - 1; i >= 0; i--) {
-      if(subscriptions[i] === topic) {
-        subscriptions.splice(i, 1);
-      }
-    }
-    subscriptions.push(topic)
-    subscriptionsChanged()
-    priv.subscribe(topic)
-  }
-  function unsubscribe(topic) {
-    for(var i = subscriptions.length - 1; i >= 0; i--) {
-      if(subscriptions[i] === topic) {
-        subscriptions.splice(i, 1);
-      }
-    }
-    subscriptionsChanged()
-    priv.unsubscribe(topic)
-  }
+  
+  function subscribe(topic)   { subtracker.add(topic) }
+  function unsubscribe(topic) { subtracker.remove(topic) }
+  
+  onStarted: subtracker.reapply()
   
   property var subscriptions: []
-  property var _last_subscriptions: []
   
-  Component.onCompleted: {
-    _last_subscriptions = []
-    subscriptionsChanged()
-  }
-  
-  onSubscriptionsChanged: {
-    if(!(_last_subscriptions instanceof Array))
-      _last_subscriptions = []
-    if(!(subscriptions instanceof Array))
-      subscriptions = [subscriptions]
-    else
-    {
-      subscriptions.forEach(function(element, index, array) {
-        if(_last_subscriptions.indexOf(element) == -1)
-          priv.subscribe(element)
-      })
-      
-      _last_subscriptions.forEach(function(element, index, array) {
-        if(subscriptions.indexOf(element) == -1)
-          priv.unsubscribe(element)
-      })
-      
-      _last_subscriptions = subscriptions
+  property var subtracker: QtObject {
+    property var _priv: priv
+    
+    function _removeAllFrom(array, element) {
+      for(var i = array.length - 1; i >= 0; i--)
+        if(array[i] === element)
+          array.splice(i, 1);
+    }
+    
+    function add(topic) {
+      _removeAllFrom(set, topic)
+      set.push(topic)
+      setChanged()
+      _priv.add(topic)
+    }
+    function remove(topic) {
+      _removeAllFrom(set, topic)
+      setChanged()
+      _priv.remove(topic)
+    }
+    
+    property var set: subscriptions
+    property var _last_set: []
+    
+    property var somebinding: Binding {
+      target: socket
+      property: "subscriptions"
+      value: socket.subtracker.set
+    }
+    
+    function reapply() {
+      _last_set = []
+      setChanged()
+    }
+    
+    onSetChanged: {
+      if(!(_last_set instanceof Array))
+        _last_set = []
+      if(!(set instanceof Array))
+        set = [set]
+      else
+      {
+        set.forEach(function(element, index, array) {
+          if(_last_set.indexOf(element) == -1)
+            _priv.add(element)
+        })
+        
+        _last_set.forEach(function(element, index, array) {
+          if(set.indexOf(element) == -1)
+            _priv.remove(element)
+        })
+        
+        _last_set = set
+      }
     }
   }
 }
