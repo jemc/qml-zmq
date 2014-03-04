@@ -6,3 +6,5 @@ ZReq  1.0 qml/ZReq.qml
 ZRep  1.0 qml/ZRep.qml
 ZPub  1.0 qml/ZPub.qml
 ZSub  1.0 qml/ZSub.qml
+ZXPub 1.0 qml/ZXPub.qml
+ZXSub 1.0 qml/ZXSub.qml

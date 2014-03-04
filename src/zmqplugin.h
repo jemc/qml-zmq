@@ -24,7 +24,7 @@ public:
         // qmlRegisterType<ZMQ_Rep> (uri, 1, 0, "ZMQ_Rep");
         // qmlRegisterType<ZMQ_Pub> (uri, 1, 0, "ZMQ_Pub");
         // qmlRegisterType<ZMQ_Sub> (uri, 1, 0, "ZMQ_Sub");
-        qmlRegisterType<ZMQ_XPub>(uri, 1, 0, "ZMQ_XPub");
-        qmlRegisterType<ZMQ_XSub>(uri, 1, 0, "ZMQ_XSub");
+        // qmlRegisterType<ZMQ_XPub>(uri, 1, 0, "ZMQ_XPub");
+        // qmlRegisterType<ZMQ_XSub>(uri, 1, 0, "ZMQ_XSub");
     };
 };

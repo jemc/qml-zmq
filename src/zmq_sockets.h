@@ -120,21 +120,21 @@ signals:
 // class ZMQ_Sub : public ZMQ_SubscribingSocketThread
 // { public: ZMQ_Sub() { socketType = ZMQ_SUB; start(); }; };
 
-class ZMQ_XPub : public ZMQ_AbstractSocketThread
-{ public: ZMQ_XPub() { socketType = ZMQ_XPUB; start(); }; };
+// class ZMQ_XPub : public ZMQ_AbstractSocketThread
+// { public: ZMQ_XPub() { socketType = ZMQ_XPUB; start(); }; };
 
-class ZMQ_XSub : public ZMQ_SubscribingSocketThread
-{ public: ZMQ_XSub() { socketType = ZMQ_XSUB; start(); };
+// class ZMQ_XSub : public ZMQ_SubscribingSocketThread
+// { public: ZMQ_XSub() { socketType = ZMQ_XSUB; start(); };
 
-protected:
+// protected:
   
-  virtual void pm_subscribe(const QString& topic)
-  { send(QStringList(QString("%01").append(topic).append("%%"))); }
+//   virtual void pm_subscribe(const QString& topic)
+//   { send(QStringList(QString("%01").append(topic).append("%%"))); }
   
-  virtual void pm_unsubscribe(const QString& topic)
-  { send(QStringList(QString("%00").append(topic).append("%%"))); }
+//   virtual void pm_unsubscribe(const QString& topic)
+//   { send(QStringList(QString("%00").append(topic).append("%%"))); }
   
-};
+// };
 
 
 #endif
