@@ -14,6 +14,7 @@ Item {
     ZPub {
       id: pub
       
+      // binds
       Component.onCompleted: bind("ipc:///tmp/test")
     }
     
