@@ -13,28 +13,20 @@ Item {
     
     ZPub {
       id: pub
-      
-      // binds
-      Component.onCompleted: bind("ipc:///tmp/test")
+      binds: "ipc:///tmp/test_pub_sub"
     }
     
     ZSub {
       id: sub
-      property var lastMessage:   []
-      
-      // connects: "ipc:///tmp/test"
+      connects: "ipc:///tmp/test_pub_sub"
       subscriptions: "topic"
-      onReceive: lastMessage = message
       
-      Component.onCompleted: {
-        connect("ipc:///tmp/test")
-        // subscribe("topic")
-      }
+      property var lastMessage:   []
+      onReceive: lastMessage = message
     }
     
     
     function test_messages() {
-      // pub.bind("ipc:///tmp/test")
       wait(250)
       
       pub.send(["topic.x.y","message"])
