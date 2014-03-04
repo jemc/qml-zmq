@@ -242,9 +242,9 @@ public:
     m_conns = conns;
   }
   
-protected:
+public slots:
   
-  void action(const char* action, const QString& payload)
+  void action(const QString& action, const QString& payload)
   {
     if(s_action != NULL)
     {

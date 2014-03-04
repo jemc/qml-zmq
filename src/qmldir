@@ -1,3 +1,4 @@
 module org.jemc.qml.ZMQ
 plugin zmqplugin
 ZPub 1.0 qml/ZPub.qml
+ZSub 1.0 qml/ZSub.qml

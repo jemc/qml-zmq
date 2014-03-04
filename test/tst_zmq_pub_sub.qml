@@ -11,20 +11,24 @@ Item {
     name: "ZMQ_Pub,Sub"
     
     
-    // ZMQ_Pub {
     ZPub {
       id: pub
       
       Component.onCompleted: bind("ipc:///tmp/test")
     }
     
-    ZMQ_Sub {
+    ZSub {
       id: sub
       property var lastMessage:   []
       
-      connects: "ipc:///tmp/test"
+      // connects: "ipc:///tmp/test"
       subscriptions: "topic"
       onReceive: lastMessage = message
+      
+      Component.onCompleted: {
+        connect("ipc:///tmp/test")
+        // subscribe("topic")
+      }
     }
     
     
