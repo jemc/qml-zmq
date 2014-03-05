@@ -77,12 +77,6 @@ public:
     REQ_RELAXED         = ZMQ_REQ_RELAXED,
     CONFLATE            = ZMQ_CONFLATE,
     ZAP_DOMAIN          = ZMQ_ZAP_DOMAIN,
-    ROUTER_HANDOVER     = ZMQ_ROUTER_HANDOVER,
-    TOS                 = ZMQ_TOS,
-    IPC_FILTER_PID      = ZMQ_IPC_FILTER_PID,
-    IPC_FILTER_UID      = ZMQ_IPC_FILTER_UID,
-    IPC_FILTER_GID      = ZMQ_IPC_FILTER_GID,
-    CONNECT_RID         = ZMQ_CONNECT_RID,
   };
 };
 
