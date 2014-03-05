@@ -7,6 +7,7 @@
 #include <zmq.h>
 
 #include "zmq_helper.h"
+#include "zmq_context.h"
 
 
 class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
@@ -21,11 +22,14 @@ public:
   
   int socketType = 0;
   
+  ZMQ_Context zcontext;
+  
 private:
   
   void run() Q_DECL_OVERRIDE
   {
-    void* context = zmq_ctx_new();
+    // void* context = zcontext.pointer;
+    void* context = ZMQ_Context::global()->pointer;
     
     int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
@@ -75,7 +79,6 @@ private:
     }
     
     zmq_close(ps_actual);
-    zmq_ctx_destroy(context);
     
     exit(0);
   }

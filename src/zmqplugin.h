@@ -4,6 +4,7 @@
 #include <qqml.h>
 
 #include "zmq_toplevel.h"
+#include "zmq_context.h"
 #include "zmq_abstract_socket_thread.h"
 
 
@@ -18,5 +19,7 @@ public:
         qmlRegisterType<ZMQ_Toplevel> (uri, 1, 0, "ZMQ");
         
         qmlRegisterType<ZMQ_AbstractSocketThread> (uri, 1, 0, "ZMQ_AbstractSocket");
+        
+        qmlRegisterType<ZMQ_Context> (uri, 1, 0, "ZContext");
     };
 };
