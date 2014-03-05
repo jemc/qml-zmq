@@ -6,8 +6,6 @@
 
 #include <zmq.h>
 
-#include "zmq_abstract_socket_thread.h"
-
 
 class ZMQ_Toplevel : public QObject
 {

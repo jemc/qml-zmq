@@ -17,7 +17,7 @@ LIBS += -lzmq
 HEADERS += $$SRCDIR/zmqplugin.h                      \
            $$SRCDIR/zmq_helper.h                     \
            $$SRCDIR/zmq_abstract_socket_thread.h     \
-           $$SRCDIR/zmq_sockets.h
+           $$SRCDIR/zmq_toplevel.h
 
 OBJECTS_DIR = $$BUILDDIR/.obj
 MOC_DIR     = $$BUILDDIR/.moc
