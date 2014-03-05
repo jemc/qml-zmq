@@ -34,90 +34,44 @@ private:
     void* ps_actual = zmq_socket(context, socketType);
     
     // Make all sockets pollable
-    pollables[0].socket = ps_actual;
-    pollables[0].events = ZMQ_POLLIN;
-    pollables[1].socket = ps_send;
-    pollables[1].events = ZMQ_POLLIN;
-    pollables[2].socket = ps_action;
-    pollables[2].events = ZMQ_POLLIN;
-    pollables[3].socket = ps_kill;
-    pollables[3].events = ZMQ_POLLIN;
+    pollables[0].events = ZMQ_POLLIN;  pollables[0].socket = ps_actual;
+    pollables[1].events = ZMQ_POLLIN;  pollables[1].socket = ps_send;
+    pollables[2].events = ZMQ_POLLIN;  pollables[2].socket = ps_action;
+    pollables[3].events = ZMQ_POLLIN;  pollables[3].socket = ps_kill;
     
     int not_dead = 1;
     
     while(not_dead) {
-      
-      // qDebug() << "> Polling in thread" << QThread::currentThread() << socketType;
-      
-      if(zmq_poll(pollables, num_pollables, -1))
-      {
-        if(pollables[0].revents) { // Actual socket
+      if(zmq_poll(pollables, num_pollables, -1)) {
+        if     (pollables[0].revents) { // ps_actual
           emit receive(recv_array(ps_actual));
         }
         else if(pollables[1].revents) { // ps_send
           send_array(ps_actual, recv_array(ps_send));
         }
         else if(pollables[2].revents) { // ps_action
-          
-          char* c_string;
           QString action = recv_string(ps_action);
           QString string = recv_string(ps_action);
           
-          // printf("ZMQ Socket Action: %s\n", action.toLocal8Bit().data());
-          
-          if(action == "BIND")
-          {
-            c_string = string.toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Binding on %s\n", c_string);
-            errchk("run, zmq_bind", zmq_bind(ps_actual, c_string));
-            send_string(ps_action, QString("OKAY"), 0);
-          }
-          else if(action == "UNBI")
-          {
-            c_string = string.toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Unbinding on %s\n", c_string);
-            // TODO: replace error checking somehow
-            // errchk("run, zmq_unbind", zmq_unbind(ps_actual, c_string));
-            zmq_unbind(ps_actual, c_string);
-            send_string(ps_action, QString("OKAY"), 0);
-          }
-          else if(action == "CONN")
-          {
-            c_string = string.toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Connecting to %s\n", c_string);
-            errchk("run, zmq_connect", zmq_connect(ps_actual, c_string));
-            send_string(ps_action, QString("OKAY"), 0);
-          }
-          else if(action == "DSCN")
-          {
-            c_string = string.toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Disconnecting from %s\n", c_string);
-            // TODO: replace error checking somehow
-            // errchk("run, zmq_disconnect", zmq_disconnect(ps_actual, c_string));
-            zmq_disconnect(ps_actual, c_string);
-            send_string(ps_action, QString("OKAY"), 0);
-          }
-          else if(action == "SSOP")
-          {
+          if     (action == "BIND") { z_bind      (ps_actual, string); }
+          else if(action == "UNBI") { z_unbind    (ps_actual, string); }
+          else if(action == "CONN") { z_connect   (ps_actual, string); }
+          else if(action == "DSCN") { z_disconnect(ps_actual, string); }
+          else if(action == "SSOP") {
             QStringList parts = string.split("=");
-            int code  = parts[0].toInt();
-            c_string  = parts[1].toLocal8Bit().data();
-            // printf("ZMQ Socket Info: Setting option %d to %s\n", code, c_string);
-            errchk("run, zmq_setsockopt",
-                   zmq_setsockopt(ps_actual, code, c_string, parts[1].count()));
-            send_string(ps_action, QString("OKAY"), 0);
+            int          code = parts[0].toInt();
+            char*        cstr = parts[1].toLocal8Bit().data();
+            errchk("zmq_setsockopt",
+                    zmq_setsockopt(ps_actual, code, cstr, parts[1].count()));
           }
-          else
-            send_string(ps_action, QString("NOPE"), 0);
+          
+          send_string(ps_action, "OKAY", 0);
         }
         else if(pollables[3].revents) { // ps_kill
           recv_array(ps_kill); // Clear the incoming message
-          // printf("ZMQ Socket Info: Killing\n");
           not_dead = 0;
         }
       }
-      
-      // qDebug() << "> Polling end with not_dead =" << not_dead;
     }
     
     zmq_close(ps_actual);
@@ -134,8 +88,8 @@ signals:
   
 public slots:
   
-  void send(const QStringList& payload)
-  { if(s_send!=NULL) send_array(s_send, payload); }
+  void send(const QStringList& message)
+  { if(s_send!=NULL) send_array(s_send, message); }
   
   void start()
   { make_inproc_sockets(); QThread::start(); }
@@ -146,6 +100,11 @@ public slots:
       quit();
       wait();
       destroy_inproc_sockets(); } }
+  
+  void action(const QString& action, const QString& payload)
+  { if(s_action != NULL)
+    { send_array(s_action, (QStringList() << action << payload));
+      QStringList result = recv_array(s_action); } }
   
 private:
   
@@ -194,15 +153,6 @@ private:
   }
   
 public slots:
-  
-  void action(const QString& action, const QString& payload)
-  {
-    if(s_action != NULL)
-    {
-      send_array(s_action, (QStringList() << action << payload));
-      QStringList result = recv_array(s_action);
-    }
-  }
   
 public:
   

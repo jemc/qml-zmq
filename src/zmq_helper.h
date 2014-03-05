@@ -97,6 +97,22 @@ protected:
     
     return list;
   }
+  
+#define QSTR2C(_qstring) _qstring.toLatin1().data()
+  
+  int z_bind(void* socket, const QString& endpt)
+  { return errchk("z_bind", zmq_bind(socket, QSTR2C(endpt))); }
+  
+  int z_connect(void* socket, const QString& endpt)
+  { return errchk("z_connect", zmq_connect(socket, QSTR2C(endpt))); }
+  
+  int z_unbind(void* socket, const QString& endpt) // TODO: restore error checking
+  // { return errchk("z_unbind", zmq_unbind(socket, QSTR2C(endpt))); }
+  { return zmq_unbind(socket, QSTR2C(endpt)); }
+  
+  int z_disconnect(void* socket, const QString& endpt) // TODO: restore error checking
+  // { return errchk("z_disconnect", zmq_disconnect(socket, QSTR2C(endpt))); }
+  { return zmq_disconnect(socket, QSTR2C(endpt)); }
 };
 
 #endif
