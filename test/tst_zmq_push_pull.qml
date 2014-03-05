@@ -20,8 +20,8 @@ Item {
       id: pull
       connects: "ipc:///tmp/test_push_pull"
       
-      property var lastReply:   []
-      onReceive: lastReply = message
+      property var lastMessage:   []
+      onReceive: lastMessage = message
     }
     
     
@@ -30,11 +30,11 @@ Item {
       
       push.send("message")
       wait(100)
-      compare(pull.lastReply, ["message"])
+      compare(pull.lastMessage, ["message"])
       
       push.send("message2")
       wait(100)
-      compare(pull.lastReply, ["message2"])
+      compare(pull.lastMessage, ["message2"])
     }
     
   }
