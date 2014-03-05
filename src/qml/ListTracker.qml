@@ -45,8 +45,8 @@ QtObject {
   }
   
   onSetChanged: {
-    if(!(_last_set instanceof Array))
-      _last_set = []
+    if(      set === undefined)        set = []
+    if(_last_set === undefined)  _last_set = []
     if(!(set instanceof Array))
       set = [set]
     else
