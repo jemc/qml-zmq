@@ -8,7 +8,7 @@ import org.jemc.qml.ZMQ 1.0
 Item {
   TestCase {
     id: test
-    name: "ZMQ_Dealer,Router"
+    name: "ZDealer,ZRouter"
     
     
     ZDealer {
@@ -30,10 +30,9 @@ Item {
       }
     }
     
+    function initTestCase() { wait(250) }
     
     function test_messages() {
-      wait(250)
-      
       var routingInfo
       
       dealer.send("message")

@@ -8,7 +8,7 @@ import org.jemc.qml.ZMQ 1.0
 Item {
   TestCase {
     id: test
-    name: "ZMQ_Req,Rep"
+    name: "ZReq,ZRep"
     
     
     ZRep {
@@ -24,18 +24,24 @@ Item {
       
       property var lastReply:   []
       onReceive: lastReply = message
+      
+      property var lastSent: undefined
+      onSendCalled: lastSent = message
     }
     
     
+    function initTestCase() { wait(250) }
+    
+    
     function test_single_part() {
-      wait(250)
+      wait(100)
       req.send("single-part message")
       wait(100)
       compare(req.lastReply, ["single-part message"])
     }
     
     function test_multi_part() {
-      wait(250)
+      wait(100)
       req.send(["multi","part","message"])
       wait(100)
       compare(req.lastReply, ["multi","part","message"])
@@ -67,6 +73,11 @@ Item {
       compare(rep.connects, ["ipc:///tmp/other"])
       rep.connects = []
       compare(rep.connects, [])
+    }
+
+    function test_onSendCalled() {
+      req.send(["the","message"])
+      compare(req.lastSent, ["the","message"])
     }
   }
 }

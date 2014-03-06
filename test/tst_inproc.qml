@@ -8,7 +8,7 @@ import org.jemc.qml.ZMQ 1.0
 Item {
   TestCase {
     id: test
-    name: "ZMQ_inproc"
+    name: "inproc"
     
     
     ZSub {
@@ -40,10 +40,9 @@ Item {
       connects: "inproc://test"
     }
     
+    function initTestCase() { wait(250) }
     
     function test_talk_but_no_crosstalk() {
-      wait(250)
-      
       pub.send(["the","message"])
       wait(100)
       compare(sub.lastMessage, ["the","message"])

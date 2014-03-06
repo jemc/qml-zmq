@@ -8,7 +8,7 @@ import org.jemc.qml.ZMQ 1.0
 Item {
   TestCase {
     id: test
-    name: "ZMQ_Pub,Sub"
+    name: "ZPub,ZSub"
     
     
     ZPub {
@@ -26,9 +26,9 @@ Item {
     }
     
     
+    function initTestCase() { wait(250) }
+    
     function test_messages() {
-      wait(250)
-      
       pub.send(["topic.x.y","message"])
       wait(100)
       compare(sub.lastMessage, ["topic.x.y","message"])

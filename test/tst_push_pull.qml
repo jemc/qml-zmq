@@ -8,7 +8,7 @@ import org.jemc.qml.ZMQ 1.0
 Item {
   TestCase {
     id: test
-    name: "ZMQ_Push,Pull"
+    name: "ZPush,ZPull"
     
     
     ZPush {
@@ -25,9 +25,9 @@ Item {
     }
     
     
+    function initTestCase() { wait(250) }
+    
     function test_messages() {
-      wait(250)
-      
       push.send("message")
       wait(100)
       compare(pull.lastMessage, ["message"])

@@ -87,13 +87,14 @@ private:
 signals:
   
   void receive(const QStringList& message);
+  void sendCalled(const QStringList& message);
   
   void socketTypeChanged();
   
 public slots:
   
   void send(const QStringList& message)
-  { if(s_send!=NULL) send_array(s_send, message); }
+  { if(s_send!=NULL) send_array(s_send,message); emit sendCalled(message); }
   
   void start()
   { make_inproc_sockets(); QThread::start(); }
