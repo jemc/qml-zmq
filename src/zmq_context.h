@@ -9,6 +9,8 @@
 
 class ZMQ_Context : public QObject
 {
+  Q_OBJECT
+  
 public:
   // Access a static "global" context for default use
   static ZMQ_Context* global() { static ZMQ_Context g; return &g; };

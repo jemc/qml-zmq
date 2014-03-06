@@ -11,28 +11,48 @@ Item {
     name: "ZMQ_inproc"
     
     
-    ZReq {
-      id: req
+    ZSub {
+      id: sub
       binds: "inproc://test"
+      subscriptions: ""
       
-      property var lastReply:   []
-      onReceive: lastReply = message
+      property var lastMessage: undefined
+      onReceive: lastMessage = message
     }
-    
-    ZRep {
-      id: rep
+    ZPub {
+      id: pub
       connects: "inproc://test"
+    }
+    
+    ZContext { id:otherContext }
+    ZSub {
+      id: othersub
+      context: otherContext
+      binds: "inproc://test"
+      subscriptions: ""
       
-      onReceive: send(message)
+      property var lastMessage: undefined
+      onReceive: lastMessage = message
+    }
+    ZPub {
+      id: otherpub
+      context: otherContext
+      connects: "inproc://test"
     }
     
     
-    function test_messages() {
+    function test_talk_but_no_crosstalk() {
       wait(250)
       
-      req.send("message")
+      pub.send(["the","message"])
       wait(100)
-      compare(req.lastReply, ["message"])
+      compare(sub.lastMessage, ["the","message"])
+      compare(othersub.lastMessage, undefined)
+      
+      otherpub.send(["other","data"])
+      wait(100)
+      compare(sub.lastMessage, ["the","message"])
+      compare(othersub.lastMessage, ["other","data"])
     }
     
   }

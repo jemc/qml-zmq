@@ -14,7 +14,8 @@ class ZMQ_AbstractSocketThread : public QThread, private ZMQ_Helper
 {
   Q_OBJECT
   
-  Q_PROPERTY(int socketType MEMBER socketType NOTIFY socketTypeChanged)
+  Q_PROPERTY(int socketType MEMBER socketType)
+  Q_PROPERTY(ZMQ_Context* context MEMBER zctx)
   
   void _() {};
   
@@ -22,20 +23,18 @@ public:
   
   int socketType = 0;
   
-  ZMQ_Context zcontext;
+  void* context = NULL;
+  ZMQ_Context* zctx = NULL;
   
 private:
   
   void run() Q_DECL_OVERRIDE
   {
-    // void* context = zcontext.pointer;
-    void* context = ZMQ_Context::global()->pointer;
-    
     int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
     
     // Main socket
-    void* ps_actual = zmq_socket(context, socketType);
+    void* ps_actual = zmq_socket(zctx->pointer, socketType);
     
     // Make all sockets pollable
     pollables[0].events = ZMQ_POLLIN;  pollables[0].socket = ps_actual;
@@ -46,7 +45,8 @@ private:
     int not_dead = 1;
     
     while(not_dead) {
-      if(zmq_poll(pollables, num_pollables, -1)) {
+    
+      if(zmq_poll(pollables, num_pollables, -1) != -1) {
         if     (pollables[0].revents) { // ps_actual
           emit receive(recv_array(ps_actual));
         }
@@ -76,6 +76,7 @@ private:
           not_dead = 0;
         }
       }
+      else not_dead = 0;
     }
     
     zmq_close(ps_actual);
@@ -141,6 +142,9 @@ private:
      s_kill = zmq_socket(ps_context, ZMQ_PUSH);
     zmq_bind  (ps_kill, "inproc://s_kill");
     zmq_connect(s_kill, "inproc://s_kill");
+    
+    // Use default global context for actual socket unless another was given
+    if(zctx == NULL) zctx = ZMQ_Context::global();
   }
   
   void destroy_inproc_sockets()
