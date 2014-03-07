@@ -1,5 +1,9 @@
 
-task :default => :test
+task :default => :vendor
+
+task :vendor do
+  require_relative 'vendor/build.rb'
+end
 
 task :test do 
   exec "qmake plugin.pro && make && qmltestrunner"
