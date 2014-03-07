@@ -8,12 +8,21 @@ ZMQ_Socket { socketType: ZMQ.SUB
   
   id: socket
   
+  signal subscription(string topic)
+  signal unsubscription(string topic)
+  
   property var subscriptions: []
   
   property var _sub_tracker: ListTracker {
-    target: socket;  set: subscriptions;  property: "subscriptions"
-    function    do_add(topic) { action("SSOP", "%1=%2".arg(ZMQ.SUBSCRIBE)  .arg(topic)) }
-    function do_remove(topic) { action("SSOP", "%1=%2".arg(ZMQ.UNSUBSCRIBE).arg(topic)) }
+    target: socket;  set: socket.subscriptions;  property: "subscriptions"
+    function do_add(topic) {
+      if(action("SSOP", "%1=%2".arg(ZMQ.SUBSCRIBE).arg(topic)))
+        socket.subscription(topic)
+    }
+    function do_remove(topic) {
+      if(action("SSOP", "%1=%2".arg(ZMQ.UNSUBSCRIBE).arg(topic)))
+        socket.unsubscription(topic)
+    }
   }
   
   function subscribe(topic)   { _sub_tracker.add(topic) }

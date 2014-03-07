@@ -106,10 +106,14 @@ public slots:
       wait();
       destroy_inproc_sockets(); } }
   
-  void action(const QString& action, const QString& payload)
-  { if(s_action != NULL)
-    { send_array(s_action, (QStringList() << action << payload));
-      QStringList result = recv_array(s_action); } }
+  bool action(const QString& action, const QString& payload)
+  {
+    if(s_action == NULL) return 0;
+    
+    send_array(s_action, (QStringList() << action << payload));
+    QStringList result = recv_array(s_action);
+    return 1;
+  }
   
 private:
   

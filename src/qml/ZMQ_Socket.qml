@@ -13,12 +13,12 @@ ZMQ_AbstractSocket {
   property var connects: []
   
   property var _bind_tracker: ListTracker {
-    target: socket;  set: binds;  property: "binds"
+    target: socket;  set: socket.binds;  property: "binds"
     function    do_add(endpt) { action("BIND", endpt) }
     function do_remove(endpt) { action("UNBI", endpt) }
   }
   property var _connect_tracker: ListTracker {
-    target: socket;  set: connects;  property: "connects"
+    target: socket;  set: socket.connects;  property: "connects"
     function    do_add(endpt) { action("CONN", endpt) }
     function do_remove(endpt) { action("DSCN", endpt) }
   }

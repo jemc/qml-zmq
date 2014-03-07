@@ -23,6 +23,14 @@ Item {
       
       property var lastMessage:   []
       onReceive: lastMessage = message
+      
+      property var lastSubscription
+      property var subCount: 0
+      onSubscription:   { lastSubscription   = topic; subCount += 1 }
+      
+      property var lastUnsubscription
+      property var unsubCount: 0
+      onUnsubscription: { lastUnsubscription = topic; unsubCount += 1 }
     }
     
     
@@ -38,20 +46,41 @@ Item {
       compare(sub.lastMessage, ["topic.zzz","message2"])
     }
     
-    
     function test_subscriptions() {
       compare(sub.subscriptions, ["topic"])
+      compare(sub.subCount, 1)
+      compare(sub.unsubCount, 0)
+      compare(sub.lastSubscription, "topic")
+      
       sub.subscribe("other")
       compare(sub.subscriptions, ["topic", "other"])
+      compare(sub.subCount, 2)
+      compare(sub.unsubCount, 0)
+      compare(sub.lastSubscription, "other")
+      
       sub.subscribe("other")
       compare(sub.subscriptions, ["topic", "other"])
+      compare(sub.subCount, 2)
+      compare(sub.unsubCount, 0)
+      compare(sub.lastSubscription, "other")
+      
       sub.unsubscribe("other")
       compare(sub.subscriptions, ["topic"])
-      sub.subscriptions = ["topic", "other"]
-      compare(sub.subscriptions, ["topic", "other"])
+      compare(sub.subCount, 2)
+      compare(sub.unsubCount, 1)
+      compare(sub.lastUnsubscription, "other")
+      
+      sub.subscriptions = ["topic", "other2"]
+      compare(sub.subscriptions, ["topic", "other2"])
+      compare(sub.subCount, 3)
+      compare(sub.unsubCount, 1)
+      compare(sub.lastSubscription, "other2")
+      
       sub.subscriptions = ["topic"]
       compare(sub.subscriptions, ["topic"])
+      compare(sub.subCount, 3)
+      compare(sub.unsubCount, 2)
+      compare(sub.lastUnsubscription, "other2")
     }
-    
   }
 }

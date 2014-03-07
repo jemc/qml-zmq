@@ -11,20 +11,28 @@ QtObject {
   function do_remove(x) {}
   
   function _removeAllFrom(array, element) {
-    for(var i = array.length - 1; i >= 0; i--)
-      if(array[i] === element)
+    var removed = false
+    
+    for(var i = array.length - 1; i >= 0; i--) {
+      if(array[i] === element) {
         array.splice(i, 1);
+        removed = true
+      }
+    }
+    
+    return removed
   }
   
   function add(x) {
-    _removeAllFrom(set, x); set.push(x)
-    setChanged()
-    do_add(x)
+    var removed = _removeAllFrom(set, x)
+    set.push(x)
+    
+    if(!removed) setChanged()
   }
   function remove(x) {
-    _removeAllFrom(set, x)
-    setChanged()
-    do_remove(x)
+    var removed = _removeAllFrom(set, x)
+    
+    if(removed) setChanged()
   }
   
   property var target
@@ -32,11 +40,12 @@ QtObject {
   
   property var set
   property var _last_set: []
+  property var _back_set: []
   
   property var _back_binding: Binding {
     target:   tracker.target
     property: tracker.property
-    value:    tracker.set
+    value:    tracker._back_set
   }
   
   function reapply() {
@@ -44,24 +53,42 @@ QtObject {
     setChanged()
   }
   
+  function array_compare(a, b) {
+    if(!(a instanceof Array)) return false
+    if(!(b instanceof Array)) return false
+    
+    var i = a.length
+    if (i != b.length) return false
+    while (i--) {
+        if (a[i] !== b[i]) return false
+    }
+    return true
+  }
+  
   onSetChanged: {
-    if(      set === undefined)        set = []
-    if(_last_set === undefined)  _last_set = []
-    if(!(set instanceof Array))
-      set = [set]
-    else
-    {
-      set.forEach(function(element, index, array) {
-        if(!(element===undefined) && _last_set.indexOf(element) == -1)
-          do_add(element)
-      })
-      
-      _last_set.forEach(function(element, index, array) {
-        if(!(element===undefined) && set.indexOf(element) == -1)
-          do_remove(element)
-      })
-      
-      _last_set = set
+    var _tmp_set
+    
+    if(set === undefined)            _tmp_set = []
+    else if(!(set instanceof Array)) _tmp_set = [set]
+    else                             _tmp_set = set.slice(0)
+    
+    if(_last_set === undefined)      _last_set = [];
+    
+    _tmp_set.forEach(function(element, index, array) {
+      if(!(element===undefined) && _last_set.indexOf(element) == -1)
+        do_add(element)
+    })
+    
+    _last_set.forEach(function(element, index, array) {
+      if(!(element===undefined) && _tmp_set.indexOf(element) == -1)
+        do_remove(element)
+    })
+    
+    _last_set = _tmp_set
+    
+    if(!array_compare(_back_set, _tmp_set)) {
+      _back_set = _tmp_set
     }
   }
+  
 }
