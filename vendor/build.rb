@@ -1,38 +1,21 @@
 
-host = "arm-linux-androideabi"
-ndk_root = ENV['ANDROID_NDK_ROOT']
-raise "Please set the ANDROID_NDK_ROOT environment variable" unless ndk_root
+require_relative 'build_env.rb'
 
-sysroot = "#{ndk_root}/platforms/android-8/arch-arm"
-incl_path = "#{sysroot}/usr/include"
-toolpath = "#{ndk_root}/toolchains/#{host}-4.7/prebuilt/linux-x86_64/bin"
-
-
-configure_flags = [
-  "CPP=#{host}-cpp",
-  "CC=#{host}-gcc",
-  "CXX=#{host}-g++",
-  "LD=#{host}-ld",
-  "AS=#{host}-as",
-  "AR=#{host}-ar",
-  "RANLIB=#{host}-ranlib",
-  
-  "CFLAGS=--sysroot=#{sysroot}",
-  "CPPFLAGS=--sysroot=#{sysroot}",
-  "CXXFLAGS=--sysroot=#{sysroot}",
-  
-  "--host=#{host}",
-  "",
-].join(' ')
-
-
+# The set of dependency libs of this project, with relevant URLs and options
 libs = {
   libzmq: {
     retrieve: [:tar, "http://download.zeromq.org/zeromq-4.0.3.tar.gz"],
+    # retrieve: [:git, "https://github.com/zeromq/libzmq.git"],
+    configure: {
+      CPPFLAGS: "-Wno-long-long",
+      APP_STL:  :stlport_static,
+    }
   }
 }
 
+# Path where sources are to be stored and built, relative to invoking Rakefile
 cache_path = "./vendor/cache/"
+
 
 # Create the cache_path directory
 system "mkdir -p #{cache_path}"
@@ -47,7 +30,10 @@ libs.each { |name, lib_opts|
   path = cache_path + name.to_s
   case type
   when :git
-    system "git clone #{url} #{path}"
+    system "cd #{cache_path}"\
+       " && git clone #{url} #{name}"
+       " && cd #{name}"
+       " && if [ ! -f configure ]; then ./autogen.sh; fi"\
   when :tar
     tarfile = "#{name}.tar.gz"
     system "cd #{cache_path}"\
@@ -58,8 +44,8 @@ libs.each { |name, lib_opts|
     raise NotImplementedError
   end
   
-  system "export PATH=#{toolpath}:$PATH"\
+  system "export PATH=#{TOOLPATH}:$PATH"\
      " && cd #{path}"\
-     " && ./configure #{configure_flags} #{lib_opts[:configure]}"\
+     " && ./configure #{configure_flags(lib_opts[:configure])}"\
      " && make"
 }
