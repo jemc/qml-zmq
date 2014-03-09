@@ -5,6 +5,7 @@ require_relative 'build_env.rb'
 libs = [
   [:libsodium,
     retrieve: [:tar, "https://download.libsodium.org/libsodium/releases/LATEST.tar.gz"],
+    # configure: { },
   ],
   [:libzmq,
     retrieve: [:tar, "http://download.zeromq.org/zeromq-4.0.3.tar.gz"],
@@ -47,8 +48,11 @@ libs.each { |name, lib_opts|
     raise NotImplementedError
   end
   
-  system "export PATH=#{TOOLPATH}:$PATH"\
-     " && cd #{path}"\
-     " && ./configure #{configure_flags(lib_opts[:configure])}"\
-     " && make"
+  exit 1 unless system\
+   "export PATH=#{TOOLPATH}:$PATH"\
+   " && cd #{path}"\
+   " && ./configure #{configure_flags(lib_opts[:configure])}"\
+   " && make"\
+   " && make install"\
+   " && echo '\n\n'"
 }

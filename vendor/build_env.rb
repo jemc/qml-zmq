@@ -1,4 +1,10 @@
 
+QT_ROOT_SET=ENV['QT_ROOT_SET'] # Should be something like $HOME/Qt5.2.0/5.2.0
+raise "Please set the QT_ROOT_SET environment variable" unless QT_ROOT_SET
+
+
+CUSTOM_PREFIX="#{QT_ROOT_SET}/android_armv7"
+
 HOST = "arm-linux-androideabi"
 NDK_ROOT = ENV['ANDROID_NDK_ROOT']
 raise "Please set the ANDROID_NDK_ROOT environment variable" unless NDK_ROOT
@@ -43,13 +49,13 @@ def configure_flags(opts)
     "AR=#{AR}",
     "RANLIB=#{RANLIB}",
     
-    "CFLAGS='#{CFLAGS} #{opts[:CFLAGS]}'",
-    "CPPFLAGS='#{CPPFLAGS} #{opts[:CPPFLAGS]}'",
-    "CXXFLAGS='#{CXXFLAGS} #{opts[:CXXFLAGS]}'",
-    "LDFLAGS='#{LDFLAGS} #{opts[:LDFLAGS]}'",
+    "CFLAGS='#{CFLAGS} #{opts[:CFLAGS]} -I#{CUSTOM_PREFIX}/include'",
+    "CPPFLAGS='#{CPPFLAGS} #{opts[:CPPFLAGS]} -I#{CUSTOM_PREFIX}/include'",
+    "CXXFLAGS='#{CXXFLAGS} #{opts[:CXXFLAGS]} -I#{CUSTOM_PREFIX}/include'",
+    "LDFLAGS='#{LDFLAGS} #{opts[:LDFLAGS]} -L#{CUSTOM_PREFIX}/lib'",
     "LIBS='#{LIBS} #{opts[:LIBS]}'",
     
-    "--host=#{HOST}",
-    "",
+    " --host=#{HOST}",
+    " --prefix=#{CUSTOM_PREFIX}",
   ].join(' ')
 end
