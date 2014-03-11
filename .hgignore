@@ -1,4 +1,6 @@
 ^Makefile$
 ^build/
 \.sublime-\w+$
+^plugin\.pro\.user$
 ^vendor/cache/
+^vendor/prefix/

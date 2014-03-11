@@ -5,11 +5,10 @@ require_relative 'build_env.rb'
 libs = [
   [:libsodium,
     retrieve: [:tar, "https://download.libsodium.org/libsodium/releases/LATEST.tar.gz"],
-    # configure: { },
   ],
   [:libzmq,
-    retrieve: [:tar, "http://download.zeromq.org/zeromq-4.0.3.tar.gz"],
-    # retrieve: [:git, "https://github.com/zeromq/libzmq.git"],
+    # retrieve: [:tar, "http://download.zeromq.org/zeromq-4.0.3.tar.gz"],
+    retrieve: [:git, "http://github.com/zeromq/zeromq4-x.git"],
     configure: {
       CPPFLAGS: "-Wno-long-long",
       APP_STL:  :stlport_static,
@@ -36,8 +35,8 @@ libs.each { |name, lib_opts|
   when :git
     system "cd #{cache_path}"\
        " && git clone #{url} #{name}"
-       " && cd #{name}"
-       " && if [ ! -f configure ]; then ./autogen.sh; fi"\
+    system "cd #{path}"\
+       " && if [ ! -f configure ]; then ./autogen.sh; fi"
   when :tar
     tarfile = "#{name}.tar.gz"
     system "cd #{cache_path}"\

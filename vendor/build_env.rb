@@ -2,8 +2,8 @@
 QT_ROOT_SET=ENV['QT_ROOT_SET'] # Should be something like $HOME/Qt5.2.0/5.2.0
 raise "Please set the QT_ROOT_SET environment variable" unless QT_ROOT_SET
 
-
-CUSTOM_PREFIX="#{QT_ROOT_SET}/android_armv7"
+PREFIX_DIR = File.join(File.dirname(__FILE__),'prefix') # vendor/prefix
+`mkdir #{PREFIX_DIR}`
 
 HOST = "arm-linux-androideabi"
 NDK_ROOT = ENV['ANDROID_NDK_ROOT']
@@ -49,13 +49,13 @@ def configure_flags(opts)
     "AR=#{AR}",
     "RANLIB=#{RANLIB}",
     
-    "CFLAGS='#{CFLAGS} #{opts[:CFLAGS]} -I#{CUSTOM_PREFIX}/include'",
-    "CPPFLAGS='#{CPPFLAGS} #{opts[:CPPFLAGS]} -I#{CUSTOM_PREFIX}/include'",
-    "CXXFLAGS='#{CXXFLAGS} #{opts[:CXXFLAGS]} -I#{CUSTOM_PREFIX}/include'",
-    "LDFLAGS='#{LDFLAGS} #{opts[:LDFLAGS]} -L#{CUSTOM_PREFIX}/lib'",
+    "CFLAGS='#{CFLAGS} #{opts[:CFLAGS]} -I#{PREFIX_DIR}/include'",
+    "CPPFLAGS='#{CPPFLAGS} #{opts[:CPPFLAGS]} -I#{PREFIX_DIR}/include'",
+    "CXXFLAGS='#{CXXFLAGS} #{opts[:CXXFLAGS]} -I#{PREFIX_DIR}/include'",
+    "LDFLAGS='#{LDFLAGS} #{opts[:LDFLAGS]} -L#{PREFIX_DIR}/lib'",
     "LIBS='#{LIBS} #{opts[:LIBS]}'",
     
     " --host=#{HOST}",
-    " --prefix=#{CUSTOM_PREFIX}",
+    " --prefix=#{PREFIX_DIR}",
   ].join(' ')
 end

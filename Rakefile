@@ -10,8 +10,8 @@ task :android do
   raise "Please set the QT_ROOT_SET environment variable" unless QT_ROOT_SET
   
   system "export ANDROID_NDK_TOOLCHAIN_VERSION=4.7"\
-    " && #{ENV['QT_ROOT_SET']}/android_armv7/bin/qmake -spec android-g++ ./plugin.pro"\
-    " && make && make install"
+    " && #{ENV['QT_ROOT_SET']}/android_armv7/bin/qmake plugin.pro -spec android-g++"\
+    " && make"
 end
 
 task :test do

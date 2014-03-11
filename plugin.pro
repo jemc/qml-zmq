@@ -8,9 +8,10 @@ QT += qml quick
 TARGET = $$qtLibraryTarget(zmqplugin)
 uri = org.jemc.qml.ZMQ
 
-DESTDIR  = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
-SRCDIR   = $$PWD/src
-BUILDDIR = $$PWD/build
+DESTDIR   = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
+SRCDIR    = $$PWD/src
+BUILDDIR  = $$PWD/build
+VENDORDIR = $$PWD/vendor/prefix
 
 LIBS += -lzmq
 
@@ -35,7 +36,15 @@ OTHER_FILES += $$SRCDIR/qmldir \
 INSTALLS    += target qmldir
 
 # Copy the qmldir file to the same folder as the plugin binary
-QMAKE_POST_LINK += $$QMAKE_COPY $$replace($$list($$quote($$SRCDIR/qmldir) $$DESTDIR), /, $$QMAKE_DIR_SEP)
+QMAKE_POST_LINK += \
+  $$QMAKE_COPY $$replace($$list($$quote($$SRCDIR/qmldir) $$DESTDIR), /, $$QMAKE_DIR_SEP)
+
+# Copy the libzmq shared library to the plugin folder (on android only)
+android {
+  QMAKE_POST_LINK += \
+ && $$QMAKE_COPY $$replace($$list($$quote($$VENDORDIR/lib/libzmq.so) $$DESTDIR), /, $$QMAKE_DIR_SEP) \
+ && $$QMAKE_COPY $$replace($$list($$quote($$VENDORDIR/lib/libsodium.so) $$DESTDIR), /, $$QMAKE_DIR_SEP)
+}
 
 # Copy the qml implementation directory
 copyqml.commands = $(COPY_DIR) $$SRCDIR/qml $$DESTDIR
