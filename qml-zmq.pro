@@ -13,7 +13,7 @@ SRCDIR    = $$PWD/src
 BUILDDIR  = $$PWD/build
 VENDORDIR = $$PWD/vendor/prefix
 
-LIBS += -lzmq
+LIBS += -L$$VENDORDIR/lib -lzmq
 
 HEADERS += $$SRCDIR/zmqplugin.h                      \
            $$SRCDIR/zmq_helper.h                     \
@@ -43,7 +43,6 @@ QMAKE_POST_LINK += \
 android {
   QMAKE_POST_LINK += \
  && $$QMAKE_COPY $$replace($$list($$quote($$VENDORDIR/lib/libzmq.so) $$DESTDIR), /, $$QMAKE_DIR_SEP) \
- && $$QMAKE_COPY $$replace($$list($$quote($$VENDORDIR/lib/libsodium.so) $$DESTDIR), /, $$QMAKE_DIR_SEP)
 }
 
 # Copy the qml implementation directory

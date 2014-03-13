@@ -3,9 +3,9 @@ require_relative 'build_env.rb'
 
 # The set of dependency libs of this project, with relevant URLs and options
 libs = [
-  [:libsodium,
-    retrieve: [:tar, "https://download.libsodium.org/libsodium/releases/LATEST.tar.gz"],
-  ],
+  # [:libsodium,
+  #   retrieve: [:tar, "https://download.libsodium.org/libsodium/releases/LATEST.tar.gz"],
+  # ],
   [:libzmq,
     # retrieve: [:tar, "http://download.zeromq.org/zeromq-4.0.3.tar.gz"],
     retrieve: [:git, "http://github.com/zeromq/zeromq4-x.git"],
