@@ -11,13 +11,13 @@ task :android do
   
   system "make clean"
   system "export ANDROID_NDK_TOOLCHAIN_VERSION=4.7"\
-    " && #{ENV['QT_ROOT_SET']}/android_armv7/bin/qmake qml-zmq.pro -spec android-g++"\
+    " && #{ENV['QT_ROOT_SET']}/android_armv7/bin/qmake *.pro -spec android-g++"\
     " && make"
   system "make clean"
 end
 
 task :test do
-  system "qmake qml-zmq.pro && make && qmltestrunner"
+  system "qmake *.pro && make && qmltestrunner"
 end
 
 task :clean do
@@ -26,7 +26,7 @@ end
 
 task :testone do
   testname = "inproc::test_talk_but_no_crosstalk"
-  system "qmake qml-zmq.pro && make && qmltestrunner #{testname}"
+  system "qmake *.pro && make && qmltestrunner #{testname}"
 end
 
 task :cleantest => [:clean, :test]
