@@ -1,5 +1,5 @@
 
-task :default => :android
+task :default => :testone
 
 task :vendor do
   require_relative 'vendor/build.rb'
@@ -25,7 +25,7 @@ task :clean do
 end
 
 task :testone do
-  testname = "inproc::test_talk_but_no_crosstalk"
+  testname = "ZReq,ZRouter::test_messages"
   system "qmake *.pro && make && qmltestrunner #{testname}"
 end
 
