@@ -1,5 +1,5 @@
 
-task :default => :testone
+task :default => :test
 
 task :vendor do
   require_relative 'vendor/build.rb'
