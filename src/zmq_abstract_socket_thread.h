@@ -101,9 +101,12 @@ public slots:
   
   void stop()
   { if(s_kill != NULL)
-    { send_string(s_kill, QString(""), 0);
+    { send_string(s_kill, "", 0);
       quit();
-      wait();
+      if(!wait(1000))
+      { terminate();
+        qWarning() << this << "thread failed to stop."; }
+      
       destroy_inproc_sockets(); } }
   
   bool action(const QString& action, const QString& payload)
