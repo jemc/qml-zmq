@@ -13,7 +13,7 @@ Item {
     
     ZReq {
       id: req
-      binds: "inproc:///tmp/test_req_router"
+      binds: "ipc:///tmp/test_req_router"
       
       property var lastReply:   []
       onReceive: lastReply = message
@@ -21,7 +21,7 @@ Item {
     
     ZRouter {
       id: router
-      connects: "inproc:///tmp/test_req_router"
+      connects: "ipc:///tmp/test_req_router"
       
       property var lastRequest:   []
       onReceive: {
