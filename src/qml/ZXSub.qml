@@ -18,13 +18,13 @@ ZMQ_Socket {
     target: socket;  set: socket.subscriptions;  property: "subscriptions"
     function do_add(topic) {
       if(!submute) {
-        send("%01".concat(topic,"%%"))
+        send("%01".concat(topic))
         socket.subscription(topic)
       }
     }
     function do_remove(topic) {
       if(!submute) {
-        send("%00".concat(topic,"%%"))
+        send("%00".concat(topic))
         socket.unsubscription(topic)
       }
     }

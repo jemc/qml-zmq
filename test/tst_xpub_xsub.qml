@@ -65,15 +65,15 @@ Item {
     
     function test_subscription_message() {
       wait(250)
-      compare(pub.lastSubscription, ["%01topic%%"])
+      compare(pub.lastSubscription, ["%01topic"])
       
       sub.subscribe("other")
       wait(50)
-      compare(pub.lastSubscription, ["%01other%%"])
+      compare(pub.lastSubscription, ["%01other"])
       
       sub.unsubscribe("other")
       wait(50)
-      compare(pub.lastSubscription, ["%00other%%"])
+      compare(pub.lastSubscription, ["%00other"])
     }
     
     function test_00_subscriptions() { // This test must run first
