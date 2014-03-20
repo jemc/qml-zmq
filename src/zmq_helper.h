@@ -23,7 +23,7 @@ protected:
     return err;
   }
   
-  int send_string(void* socket, const QString& string, int flags)
+  int send_string(void* socket, const QString& string, int flags=0)
   {
     QByteArray bytes;
     bytes = string.toLatin1();
@@ -31,8 +31,11 @@ protected:
     // Un-escape all non-latin1 characters from percent encoding
     bytes = QByteArray::fromPercentEncoding(bytes);
     
-    return errchk("send_string, zmq_send", zmq_send(socket, 
-                  bytes.data(), bytes.count(), flags));
+    int rc = zmq_send(socket, bytes.data(), bytes.count(), flags);
+    if(rc==-1 && flags&ZMQ_DONTWAIT && errno==EAGAIN)
+      return rc;
+    else
+      return errchk("send_string, zmq_send", rc);
   }
   
   int send_array(void* socket, const QStringList& list, int flags=0)
@@ -40,7 +43,7 @@ protected:
     int list_size = list.size()-1;
     
     for (int i = 0; i < list_size; ++i)
-      send_string(socket, list[i], ZMQ_SNDMORE);
+      send_string(socket, list[i], ZMQ_SNDMORE|flags);
     
     return send_string(socket, list[list_size], flags);
   }

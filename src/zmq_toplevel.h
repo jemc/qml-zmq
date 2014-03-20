@@ -78,6 +78,12 @@ public:
     CONFLATE            = ZMQ_CONFLATE,
     ZAP_DOMAIN          = ZMQ_ZAP_DOMAIN,
   };
+  
+  Q_ENUMS(SocketSendRecvOptions)
+  enum SocketSendRecvOptions {
+    DONTWAIT = ZMQ_DONTWAIT,
+    SNDMORE  = ZMQ_SNDMORE,
+  };
 };
 
 

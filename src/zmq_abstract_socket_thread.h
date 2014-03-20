@@ -51,8 +51,11 @@ private:
           emit receive(recv_array(ps_actual));
         }
         else if(pollables[1].revents) { // ps_send
-          send_array(ps_actual, recv_array(ps_send));
-          send_string(ps_send, "OKAY", 0);
+          QStringList message = recv_array(ps_send);
+          int flags = message.last().toInt();
+          message.removeLast();
+          int rc = send_array(ps_actual, message, flags);
+          send_string(ps_send, QString::number(rc != -1));
         }
         else if(pollables[2].revents) { // ps_action
           QString action = recv_string(ps_action);
@@ -94,14 +97,6 @@ signals:
   
 public slots:
   
-  void send(const QStringList& message) {
-    if(s_send!=NULL) {
-      send_array(s_send,message);
-      recv_array(s_send);
-    }
-    emit sendCalled(message);
-  }
-  
   void start() {
     make_inproc_sockets();
     QThread::start();
@@ -117,6 +112,16 @@ public slots:
       }
       destroy_inproc_sockets();
     }
+  }
+  
+  bool send(QStringList message, int flags=0) {
+    if(s_send == NULL) return 0;
+    
+    emit sendCalled(message);
+    
+    message << QString::number(flags);
+    send_array(s_send, message);
+    return recv_string(s_send).toInt();
   }
   
   bool action(const QString& action, const QString& payload) {
