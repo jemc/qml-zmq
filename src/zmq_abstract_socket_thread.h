@@ -28,8 +28,8 @@ public:
   
 private:
   
-  void run() Q_DECL_OVERRIDE
-  {
+  void run() Q_DECL_OVERRIDE {
+    
     int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
     
@@ -45,7 +45,7 @@ private:
     int not_dead = 1;
     
     while(not_dead) {
-    
+      
       if(zmq_poll(pollables, num_pollables, -1) != -1) {
         if     (pollables[0].revents) { // ps_actual
           emit receive(recv_array(ps_actual));
@@ -94,27 +94,32 @@ signals:
   
 public slots:
   
-  void send(const QStringList& message)
-  { if(s_send!=NULL)
-    { send_array(s_send,message);
-      recv_array(s_send); }
-    emit sendCalled(message); }
+  void send(const QStringList& message) {
+    if(s_send!=NULL) {
+      send_array(s_send,message);
+      recv_array(s_send);
+    }
+    emit sendCalled(message);
+  }
   
-  void start()
-  { make_inproc_sockets(); QThread::start(); }
+  void start() {
+    make_inproc_sockets();
+    QThread::start();
+  }
   
-  void stop()
-  { if(s_kill != NULL)
-    { send_string(s_kill, "", 0);
+  void stop() {
+    if(s_kill != NULL) {
+      send_string(s_kill, "", 0);
       quit();
-      if(!wait(1000))
-      { terminate();
-        qWarning() << this << "thread failed to stop."; }
-      
-      destroy_inproc_sockets(); } }
+      if(!wait(1000)) {
+        terminate();
+        qWarning() << this << "thread failed to stop.";
+      }
+      destroy_inproc_sockets();
+    }
+  }
   
-  bool action(const QString& action, const QString& payload)
-  {
+  bool action(const QString& action, const QString& payload) {
     if(s_action == NULL) return 0;
     
     send_array(s_action, (QStringList() << action << payload));
@@ -133,8 +138,7 @@ private:
   void* ps_kill   = NULL;
   void*  s_kill   = NULL;
   
-  void make_inproc_sockets()
-  {
+  void make_inproc_sockets() {
     ps_context = zmq_ctx_new();
     
     // Socket to get send from user code and send to actual
@@ -159,8 +163,7 @@ private:
     if(zctx == NULL) zctx = ZMQ_Context::global();
   }
   
-  void destroy_inproc_sockets()
-  {
+  void destroy_inproc_sockets() {
     zmq_close(ps_send);   ps_send   = NULL;
     zmq_close (s_send);    s_send   = NULL;
     zmq_close(ps_action); ps_action = NULL;
