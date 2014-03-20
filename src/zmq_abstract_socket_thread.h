@@ -52,6 +52,7 @@ private:
         }
         else if(pollables[1].revents) { // ps_send
           send_array(ps_actual, recv_array(ps_send));
+          send_string(ps_send, "OKAY", 0);
         }
         else if(pollables[2].revents) { // ps_action
           QString action = recv_string(ps_action);
@@ -94,7 +95,10 @@ signals:
 public slots:
   
   void send(const QStringList& message)
-  { if(s_send!=NULL) send_array(s_send,message); emit sendCalled(message); }
+  { if(s_send!=NULL)
+    { send_array(s_send,message);
+      recv_array(s_send); }
+    emit sendCalled(message); }
   
   void start()
   { make_inproc_sockets(); QThread::start(); }
@@ -134,8 +138,8 @@ private:
     ps_context = zmq_ctx_new();
     
     // Socket to get send from user code and send to actual
-    ps_send = zmq_socket(ps_context, ZMQ_PULL);
-     s_send = zmq_socket(ps_context, ZMQ_PUSH);
+    ps_send = zmq_socket(ps_context, ZMQ_REP);
+     s_send = zmq_socket(ps_context, ZMQ_REQ);
     zmq_bind  (ps_send, "inproc://s_send");
     zmq_connect(s_send, "inproc://s_send");
     
