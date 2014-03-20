@@ -27,6 +27,7 @@ Item {
       
       function compareOne(expected) {
         wait()
+        test.compare(spy.count, 1)
         var message = signalArguments[0][0]
         test.compare(Object.keys(message).length, expected.length)
         for(var i=0; i<expected.length; i++)
