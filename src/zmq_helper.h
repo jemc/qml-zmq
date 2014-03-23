@@ -6,6 +6,8 @@
 
 #include <zmq.h>
 
+#include "zmq_util.h"
+
 
 class ZMQ_Helper
 {
@@ -25,11 +27,7 @@ protected:
   
   int send_string(void* socket, const QString& string, int flags=0)
   {
-    QByteArray bytes;
-    bytes = string.toLatin1();
-    
-    // Un-escape all non-latin1 characters from percent encoding
-    bytes = QByteArray::fromPercentEncoding(bytes);
+    QByteArray bytes = ZMQ_Util::convertDataToBytes(string);
     
     int rc = zmq_send(socket, bytes.data(), bytes.count(), flags);
     if(rc==-1 && flags&ZMQ_DONTWAIT && errno==EAGAIN)
@@ -50,9 +48,6 @@ protected:
   
   QString recv_string(void* socket)
   {
-    #define LATIN1_CHARS \
-    " !\"#$&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-    
     QByteArray bytes;
     zmq_msg_t msg;
     
@@ -60,12 +55,9 @@ protected:
     errchk("recv_string, zmq_recvmsg", zmq_recvmsg(socket, &msg, 0));
     bytes = QByteArray((char*)zmq_msg_data(&msg), zmq_msg_size(&msg));
     
-    // Escape all non-latin1 characters with percent encoding
-    bytes = bytes.toPercentEncoding(LATIN1_CHARS);
-    
     errchk("recv_string, zmq_msg_close", zmq_msg_close(&msg));
     
-    return QString::fromLatin1(bytes);
+    return ZMQ_Util::convertBytesToData(bytes);
   }
   
   QStringList recv_array(void* socket)
