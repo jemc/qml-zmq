@@ -6,6 +6,7 @@
 #include "zmq_toplevel.h"
 #include "zmq_context.h"
 #include "zmq_abstract_socket_thread.h"
+#include "zmq_util.h"
 
 
 class ZMQPlugin : public QQmlExtensionPlugin
@@ -21,5 +22,7 @@ public:
         qmlRegisterType<ZMQ_AbstractSocketThread> (uri, 1, 0, "ZMQ_AbstractSocket");
         
         qmlRegisterType<ZMQ_Context> (uri, 1, 0, "ZContext");
+        
+        qmlRegisterType<ZMQ_Util> (uri, 1, 0, "ZUtil");
     };
 };
