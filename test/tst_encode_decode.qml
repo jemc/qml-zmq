@@ -17,12 +17,23 @@ Item {
     function test_latin1_data() {
       return [
         {source:"foo\xF3bar", encoded:"foo%F3bar"},
+        {source:"foo\x00bar", encoded:"foo%00bar"},
+        {source:"100%", encoded:"100%25"},
       ]
     }
     
     function test_utf8_data() {
       return [
         {source:"foo\xF3bar", encoded:"foo%C3%B3bar"},
+        {source:"foo\x00bar", encoded:"foo%00bar"},
+        {source:"100%", encoded:"100%25"},
+        {source:"\u0001", encoded:"%01"},
+        {source:"\u0012", encoded:"%12"},
+        {source:"\u0123", encoded:"%C4%A3"},
+        {source:"\u1234", encoded:"%E1%88%B4"},
+        {source:"èëœ", encoded:"%C3%A8%C3%AB%C5%93"},
+        {source:"€àáß", encoded:"%E2%82%AC%C3%A0%C3%A1%C3%9F"},
+        {source:"文字化け", encoded:"%E6%96%87%E5%AD%97%E5%8C%96%E3%81%91"},
       ]
     }
     
