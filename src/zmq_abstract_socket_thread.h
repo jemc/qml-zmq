@@ -104,7 +104,7 @@ public slots:
   
   void stop() {
     if(s_kill != NULL) {
-      send_string(s_kill, "", 0);
+      send_bytes(s_kill, "", 0);
       quit();
       if(!wait(1000)) {
         terminate();
@@ -121,14 +121,14 @@ public slots:
     
     message << QString::number(flags);
     send_array(s_send, message);
-    return recv_string(s_send).toInt();
+    return recv_bytes(s_send).toInt();
   }
   
   bool action(const QString& action, const QString& payload) {
     if(s_action == NULL) return 0;
     
     send_array(s_action, (QStringList() << action << payload));
-    QStringList result = recv_array(s_action);
+    QByteArray result = recv_bytes(s_action);
     return 1;
   }
   
