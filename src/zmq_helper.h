@@ -15,9 +15,8 @@ class ZMQ_Helper
   
 protected:
   
-  int errchk(const char* description, int err)
-  {
-    if(err==-1)
+  int errchk(const char* description, int err 
+     if(err==-1)
     {
       printf("ZMQ Socket Error in %s: %s\n", description, zmq_strerror(errno));
       exit(1);
@@ -25,8 +24,7 @@ protected:
     return err;
   }
   
-  int send_bytes(void* socket, const QByteArray& bytes, int flags=0)
-  {
+  int send_bytes(void* socket, const QByteArray& bytes, int flags=0) {
     int rc = zmq_send(socket, bytes.constData(), bytes.count(), flags);
     if(rc==-1 && flags&ZMQ_DONTWAIT && errno==EAGAIN)
       return rc;
@@ -34,13 +32,11 @@ protected:
       return errchk("send_bytes, zmq_send", rc);
   }
   
-  int send_string(void* socket, const QString& string, int flags=0)
-  {
+  int send_string(void* socket, const QString& string, int flags=0) {
     return send_bytes(socket, ZMQ_Util::convertDataToBytes(string), flags);
   }
   
-  int send_array(void* socket, const QStringList& list, int flags=0)
-  {
+  int send_array(void* socket, const QStringList& list, int flags=0) {
     int list_size = list.size()-1;
     
     for (int i = 0; i < list_size; ++i)
@@ -49,8 +45,7 @@ protected:
     return send_string(socket, list[list_size], flags);
   }
   
-  int send_bytes_array(void* socket, const QList<QByteArray>& list, int flags=0)
-  {
+  int send_bytes_array(void* socket, const QList<QByteArray>& list, int flags=0) {
     int list_size = list.size()-1;
     
     for (int i = 0; i < list_size; ++i)
@@ -59,8 +54,7 @@ protected:
     return send_bytes(socket, list[list_size], flags);
   }
   
-  QByteArray recv_bytes(void* socket)
-  {
+  QByteArray recv_bytes(void* socket) {
     QByteArray bytes;
     zmq_msg_t msg;
     
@@ -73,13 +67,11 @@ protected:
     return bytes;
   }
   
-  QString recv_string(void* socket)
-  {
+  QString recv_string(void* socket) {
     return ZMQ_Util::convertBytesToData(recv_bytes(socket));
   }
   
-  QStringList recv_array(void* socket)
-  {
+  QStringList recv_array(void* socket) {
     QStringList list;
     int rcv_more = 1;
     size_t length;
@@ -93,8 +85,7 @@ protected:
     return list;
   }
   
-  QList<QByteArray> recv_bytes_array(void* socket)
-  {
+  QList<QByteArray> recv_bytes_array(void* socket) {
     QList<QByteArray> list;
     int rcv_more = 1;
     size_t length;
@@ -109,11 +100,11 @@ protected:
   }
   
   
-  int z_bind(void* socket, const QByteArray& endpt)
-  { return errchk("z_bind", zmq_bind(socket, endpt.constData())); }
+  int z_bind(void* socket, const QByteArray& endpt) {
+    return errchk("z_bind", zmq_bind(socket, endpt.constData())); }
   
-  int z_connect(void* socket, const QByteArray& endpt)
-  { return errchk("z_connect", zmq_connect(socket, endpt.constData())); }
+  int z_connect(void* socket, const QByteArray& endpt) {
+    return errchk("z_connect", zmq_connect(socket, endpt.constData())); }
   
   int z_unbind(void* socket, const QByteArray& endpt) // TODO: restore error checking
   // { return errchk("z_unbind", zmq_unbind(socket, endpt.constData())); }
