@@ -25,15 +25,18 @@ protected:
     return err;
   }
   
-  int send_string(void* socket, const QString& string, int flags=0)
+  int send_bytes(void* socket, const QByteArray& bytes, int flags=0)
   {
-    QByteArray bytes = ZMQ_Util::convertDataToBytes(string);
-    
     int rc = zmq_send(socket, bytes.data(), bytes.count(), flags);
     if(rc==-1 && flags&ZMQ_DONTWAIT && errno==EAGAIN)
       return rc;
     else
-      return errchk("send_string, zmq_send", rc);
+      return errchk("send_bytes, zmq_send", rc);
+  }
+  
+  int send_string(void* socket, const QString& string, int flags=0)
+  {
+    return send_bytes(socket, ZMQ_Util::convertDataToBytes(string), flags);
   }
   
   int send_array(void* socket, const QStringList& list, int flags=0)
@@ -46,18 +49,23 @@ protected:
     return send_string(socket, list[list_size], flags);
   }
   
-  QString recv_string(void* socket)
+  QByteArray recv_bytes(void* socket)
   {
     QByteArray bytes;
     zmq_msg_t msg;
     
-    errchk("recv_string, zmq_msg_init", zmq_msg_init(&msg));
-    errchk("recv_string, zmq_recvmsg", zmq_recvmsg(socket, &msg, 0));
+    errchk("recv_bytes, zmq_msg_init", zmq_msg_init(&msg));
+    errchk("recv_bytes, zmq_recvmsg", zmq_recvmsg(socket, &msg, 0));
     bytes = QByteArray((char*)zmq_msg_data(&msg), zmq_msg_size(&msg));
     
-    errchk("recv_string, zmq_msg_close", zmq_msg_close(&msg));
+    errchk("recv_bytes, zmq_msg_close", zmq_msg_close(&msg));
     
-    return ZMQ_Util::convertBytesToData(bytes);
+    return bytes;
+  }
+  
+  QString recv_string(void* socket)
+  {
+    return ZMQ_Util::convertBytesToData(recv_bytes(socket));
   }
   
   QStringList recv_array(void* socket)
