@@ -95,23 +95,6 @@ protected:
     
     return list;
   }
-  
-  
-  int z_bind(void* socket, const QByteArray& endpt) {
-    return errchk("z_bind", zmq_bind(socket, endpt.constData()));
-  }
-  
-  int z_connect(void* socket, const QByteArray& endpt) {
-    return errchk("z_connect", zmq_connect(socket, endpt.constData()));
-  }
-  
-  int z_unbind(void* socket, const QByteArray& endpt) { // TODO: restore error checking
-    return zmq_unbind(socket, endpt.constData());
-  }
-  
-  int z_disconnect(void* socket, const QByteArray& endpt) { // TODO: restore error checking
-    return zmq_disconnect(socket, endpt.constData());
-  }
 };
 
 #endif

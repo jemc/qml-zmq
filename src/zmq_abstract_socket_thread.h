@@ -47,34 +47,39 @@ private:
     while(not_dead) {
       
       if(zmq_poll(pollables, num_pollables, -1) != -1) {
+        
         if     (pollables[0].revents) { // ps_actual
           emit receive(recv_array(ps_actual));
         }
+        
         else if(pollables[1].revents) { // ps_send
           QList<QByteArray> message = recv_bytes_array(ps_send);
           int flags = message.last().toInt();
           message.removeLast();
+          
           int rc = send_bytes_array(ps_actual, message, flags);
+          
           send_bytes(ps_send, QByteArray::number(rc != -1));
         }
+        
         else if(pollables[2].revents) { // ps_action
           QByteArray action = recv_bytes(ps_action);
           QByteArray string = recv_bytes(ps_action);
+          int rc = -1;
           
-          if     (action == "BIND") { z_bind      (ps_actual, string); }
-          else if(action == "UNBI") { z_unbind    (ps_actual, string); }
-          else if(action == "CONN") { z_connect   (ps_actual, string); }
-          else if(action == "DSCN") { z_disconnect(ps_actual, string); }
+          if     (action == "BIND") { rc = zmq_bind      (ps_actual, string.constData()); }
+          else if(action == "UNBI") { rc = zmq_unbind    (ps_actual, string.constData()); }
+          else if(action == "CONN") { rc = zmq_connect   (ps_actual, string.constData()); }
+          else if(action == "DSCN") { rc = zmq_disconnect(ps_actual, string.constData()); }
           else if(action == "SSOP") {
             QList<QByteArray> parts = string.split('=');
-            int                code = parts[0].toInt();
-            const char*        cstr = parts[1].constData();
-            errchk("zmq_setsockopt",
-                    zmq_setsockopt(ps_actual, code, cstr, parts[1].count()));
+            rc = zmq_setsockopt(ps_actual, parts[0].toInt(), 
+                                parts[1].constData(), parts[1].count());
           }
           
-          send_bytes(ps_action, "OKAY", 0);
+          send_bytes(ps_action, QByteArray::number(rc != -1));
         }
+        
         else if(pollables[3].revents) { // ps_kill
           recv_bytes_array(ps_kill); // Clear the incoming message
           not_dead = 0;
@@ -128,8 +133,7 @@ public slots:
     if(s_action == NULL) return 0;
     
     send_array(s_action, (QStringList() << action << payload));
-    QByteArray result = recv_bytes(s_action);
-    return 1;
+    return recv_bytes(s_action).toInt();
   }
   
 private:
