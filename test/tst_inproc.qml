@@ -11,47 +11,43 @@ Item {
     name: "inproc"
     
     
-    ZSub {
-      id: sub
+    ZPull {
+      id: pull
       binds: "inproc://test"
-      subscriptions: ""
       
       property var lastMessage: undefined
       onReceive: lastMessage = message
     }
-    ZPub {
-      id: pub
+    ZPush {
+      id: push
       connects: "inproc://test"
     }
     
     ZContext { id:otherContext }
-    ZSub {
-      id: othersub
+    ZPull {
+      id: otherpull
       context: otherContext
       binds: "inproc://test"
-      subscriptions: ""
       
       property var lastMessage: undefined
       onReceive: lastMessage = message
     }
-    ZPub {
-      id: otherpub
+    ZPush {
+      id: otherpush
       context: otherContext
       connects: "inproc://test"
     }
     
-    function initTestCase() { wait(250) }
-    
     function test_talk_but_no_crosstalk() {
-      pub.send(["the","message"])
+      push.send(["the","message"])
       wait(100)
-      compare(sub.lastMessage, ["the","message"])
-      compare(othersub.lastMessage, undefined)
+      compare(pull.lastMessage, ["the","message"])
+      compare(otherpull.lastMessage, undefined)
       
-      otherpub.send(["other","data"])
+      otherpush.send(["other","data"])
       wait(100)
-      compare(sub.lastMessage, ["the","message"])
-      compare(othersub.lastMessage, ["other","data"])
+      compare(pull.lastMessage, ["the","message"])
+      compare(otherpull.lastMessage, ["other","data"])
     }
     
   }

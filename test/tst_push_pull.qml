@@ -24,9 +24,6 @@ Item {
       onReceive: lastMessage = message
     }
     
-    
-    function initTestCase() { wait(250) }
-    
     function test_messages() {
       push.send("message")
       wait(100)

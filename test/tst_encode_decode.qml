@@ -14,8 +14,6 @@ Item {
     ZPull { id:pull; connects:"ipc:///tmp/test" }
     SignalSpy { id:spy; target:pull; signalName:"receive" }
     
-    function initTestCase() { wait(250) }
-    
     function init_data() {
       return [
         {source:"foo\xF3bar", encoded:"foo%F3bar"},

@@ -30,9 +30,6 @@ Item {
     }
     
     
-    function initTestCase() { wait(250) }
-    
-    
     function test_single_part() {
       wait(100)
       req.send("single-part message")

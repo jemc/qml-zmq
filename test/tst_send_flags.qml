@@ -35,8 +35,6 @@ Item {
       }
     }
     
-    function initTestCase() { wait(250) }
-    
     function test_blocking_send() {
       spy.clear()
       

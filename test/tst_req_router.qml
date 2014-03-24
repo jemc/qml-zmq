@@ -30,8 +30,6 @@ Item {
       }
     }
     
-    function initTestCase() { wait(250) }
-    
     function test_messages() {
       var routingInfo
       
