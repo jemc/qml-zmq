@@ -7,7 +7,11 @@ import org.jemc.qml.ZMQ 1.0
 ZMQ_AbstractSocket {
   id: socket
   
-  Component.onCompleted: start();
+  Component.onCompleted: {
+    start()
+    _bind_tracker.reapply()
+    _connect_tracker.reapply()
+  }
   
   property var binds: []
   property var connects: []
@@ -27,9 +31,4 @@ ZMQ_AbstractSocket {
   function unbind(endpt)     { _bind_tracker.remove(endpt) }
   function connect(endpt)    { _connect_tracker.add(endpt) }
   function disconnect(endpt) { _connect_tracker.remove(endpt) }
-  
-  onStarted: {
-    _bind_tracker.reapply()
-    _connect_tracker.reapply()
-  }
 }
