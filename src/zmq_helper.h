@@ -15,9 +15,8 @@ class ZMQ_Helper
   
 protected:
   
-  int errchk(const char* description, int err 
-     if(err==-1)
-    {
+  int errchk(const char* description, int err) {
+    if(err==-1) {
       printf("ZMQ Socket Error in %s: %s\n", description, zmq_strerror(errno));
       exit(1);
     }
@@ -76,8 +75,7 @@ protected:
     int rcv_more = 1;
     size_t length;
     
-    while(rcv_more)
-    {
+    while(rcv_more) {
       list << recv_string(socket);
       zmq_getsockopt(socket, ZMQ_RCVMORE, &rcv_more, &length);
     }
@@ -90,8 +88,7 @@ protected:
     int rcv_more = 1;
     size_t length;
     
-    while(rcv_more)
-    {
+    while(rcv_more) {
       list << recv_bytes(socket);
       zmq_getsockopt(socket, ZMQ_RCVMORE, &rcv_more, &length);
     }
@@ -101,18 +98,20 @@ protected:
   
   
   int z_bind(void* socket, const QByteArray& endpt) {
-    return errchk("z_bind", zmq_bind(socket, endpt.constData())); }
+    return errchk("z_bind", zmq_bind(socket, endpt.constData()));
+  }
   
   int z_connect(void* socket, const QByteArray& endpt) {
-    return errchk("z_connect", zmq_connect(socket, endpt.constData())); }
+    return errchk("z_connect", zmq_connect(socket, endpt.constData()));
+  }
   
-  int z_unbind(void* socket, const QByteArray& endpt) // TODO: restore error checking
-  // { return errchk("z_unbind", zmq_unbind(socket, endpt.constData())); }
-  { return zmq_unbind(socket, endpt.constData()); }
+  int z_unbind(void* socket, const QByteArray& endpt) { // TODO: restore error checking
+    return zmq_unbind(socket, endpt.constData());
+  }
   
-  int z_disconnect(void* socket, const QByteArray& endpt) // TODO: restore error checking
-  // { return errchk("z_disconnect", zmq_disconnect(socket, endpt.constData())); }
-  { return zmq_disconnect(socket, endpt.constData()); }
+  int z_disconnect(void* socket, const QByteArray& endpt) { // TODO: restore error checking
+    return zmq_disconnect(socket, endpt.constData());
+  }
 };
 
 #endif
