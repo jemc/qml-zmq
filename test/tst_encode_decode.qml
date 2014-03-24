@@ -14,9 +14,15 @@ Item {
     ZPull { id:pull; connects:"ipc:///tmp/test" }
     SignalSpy { id:spy; target:pull; signalName:"receive" }
     
-    function init_data() {
+    function test_latin1_data() {
       return [
         {source:"foo\xF3bar", encoded:"foo%F3bar"},
+      ]
+    }
+    
+    function test_utf8_data() {
+      return [
+        {source:"foo\xF3bar", encoded:"foo%C3%B3bar"},
       ]
     }
     
@@ -31,6 +37,19 @@ Item {
       push.send(ZUtil.convertLatin1ToData(str))
       spy.wait()
       compare(ZUtil.convertDataToLatin1(spy.signalArguments[0][0][0]), str)
+    }
+    
+    function test_utf8(data) {
+      var str = data.source
+      var enc = data.encoded
+      
+      compare(ZUtil.convertUtf8ToData(str), enc)
+      compare(ZUtil.convertDataToUtf8(enc), str)
+      
+      spy.clear()
+      push.send(ZUtil.convertUtf8ToData(str))
+      spy.wait()
+      compare(ZUtil.convertDataToUtf8(spy.signalArguments[0][0][0]), str)
     }
   }
 }

@@ -40,6 +40,12 @@ public slots:
     
     QString convertDataToLatin1(const QString& data)
     { return QString::fromLatin1(ZMQ_Util::convertDataToBytes(data)); }
+    
+    QString convertUtf8ToData(const QString& str)
+    { return ZMQ_Util::convertBytesToData(str.toUtf8()); }
+    
+    QString convertDataToUtf8(const QString& data)
+    { return QString::fromUtf8(ZMQ_Util::convertDataToBytes(data)); }
 };
 
 
