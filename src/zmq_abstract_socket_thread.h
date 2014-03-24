@@ -58,25 +58,25 @@ private:
           send_bytes(ps_send, QByteArray::number(rc != -1));
         }
         else if(pollables[2].revents) { // ps_action
-          QString action = recv_string(ps_action);
-          QString string = recv_string(ps_action);
+          QByteArray action = recv_bytes(ps_action);
+          QByteArray string = recv_bytes(ps_action);
           
           if     (action == "BIND") { z_bind      (ps_actual, string); }
           else if(action == "UNBI") { z_unbind    (ps_actual, string); }
           else if(action == "CONN") { z_connect   (ps_actual, string); }
           else if(action == "DSCN") { z_disconnect(ps_actual, string); }
           else if(action == "SSOP") {
-            QStringList parts = string.split("=");
-            int          code = parts[0].toInt();
-            char*        cstr = parts[1].toLocal8Bit().data();
+            QList<QByteArray> parts = string.split('=');
+            int                code = parts[0].toInt();
+            char*              cstr = parts[1].data();
             errchk("zmq_setsockopt",
                     zmq_setsockopt(ps_actual, code, cstr, parts[1].count()));
           }
           
-          send_string(ps_action, "OKAY", 0);
+          send_bytes(ps_action, "OKAY", 0);
         }
         else if(pollables[3].revents) { // ps_kill
-          recv_array(ps_kill); // Clear the incoming message
+          recv_bytes_array(ps_kill); // Clear the incoming message
           not_dead = 0;
         }
       }
