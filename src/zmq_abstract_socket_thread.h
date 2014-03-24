@@ -51,11 +51,11 @@ private:
           emit receive(recv_array(ps_actual));
         }
         else if(pollables[1].revents) { // ps_send
-          QStringList message = recv_array(ps_send);
+          QList<QByteArray> message = recv_bytes_array(ps_send);
           int flags = message.last().toInt();
           message.removeLast();
-          int rc = send_array(ps_actual, message, flags);
-          send_string(ps_send, QString::number(rc != -1));
+          int rc = send_bytes_array(ps_actual, message, flags);
+          send_bytes(ps_send, QByteArray::number(rc != -1));
         }
         else if(pollables[2].revents) { // ps_action
           QString action = recv_string(ps_action);

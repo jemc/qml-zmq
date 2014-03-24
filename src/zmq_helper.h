@@ -49,6 +49,16 @@ protected:
     return send_string(socket, list[list_size], flags);
   }
   
+  int send_bytes_array(void* socket, const QList<QByteArray>& list, int flags=0)
+  {
+    int list_size = list.size()-1;
+    
+    for (int i = 0; i < list_size; ++i)
+      send_bytes(socket, list[i], ZMQ_SNDMORE|flags);
+    
+    return send_bytes(socket, list[list_size], flags);
+  }
+  
   QByteArray recv_bytes(void* socket)
   {
     QByteArray bytes;
@@ -77,6 +87,21 @@ protected:
     while(rcv_more)
     {
       list << recv_string(socket);
+      zmq_getsockopt(socket, ZMQ_RCVMORE, &rcv_more, &length);
+    }
+    
+    return list;
+  }
+  
+  QList<QByteArray> recv_bytes_array(void* socket)
+  {
+    QList<QByteArray> list;
+    int rcv_more = 1;
+    size_t length;
+    
+    while(rcv_more)
+    {
+      list << recv_bytes(socket);
       zmq_getsockopt(socket, ZMQ_RCVMORE, &rcv_more, &length);
     }
     
