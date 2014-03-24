@@ -27,7 +27,7 @@ protected:
   
   int send_bytes(void* socket, const QByteArray& bytes, int flags=0)
   {
-    int rc = zmq_send(socket, bytes.data(), bytes.count(), flags);
+    int rc = zmq_send(socket, bytes.constData(), bytes.count(), flags);
     if(rc==-1 && flags&ZMQ_DONTWAIT && errno==EAGAIN)
       return rc;
     else
@@ -110,18 +110,18 @@ protected:
   
   
   int z_bind(void* socket, const QByteArray& endpt)
-  { return errchk("z_bind", zmq_bind(socket, endpt.data())); }
+  { return errchk("z_bind", zmq_bind(socket, endpt.constData())); }
   
   int z_connect(void* socket, const QByteArray& endpt)
-  { return errchk("z_connect", zmq_connect(socket, endpt.data())); }
+  { return errchk("z_connect", zmq_connect(socket, endpt.constData())); }
   
   int z_unbind(void* socket, const QByteArray& endpt) // TODO: restore error checking
-  // { return errchk("z_unbind", zmq_unbind(socket, endpt.data())); }
-  { return zmq_unbind(socket, endpt.data()); }
+  // { return errchk("z_unbind", zmq_unbind(socket, endpt.constData())); }
+  { return zmq_unbind(socket, endpt.constData()); }
   
   int z_disconnect(void* socket, const QByteArray& endpt) // TODO: restore error checking
-  // { return errchk("z_disconnect", zmq_disconnect(socket, endpt.data())); }
-  { return zmq_disconnect(socket, endpt.data()); }
+  // { return errchk("z_disconnect", zmq_disconnect(socket, endpt.constData())); }
+  { return zmq_disconnect(socket, endpt.constData()); }
 };
 
 #endif

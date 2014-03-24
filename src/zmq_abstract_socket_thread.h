@@ -68,7 +68,7 @@ private:
           else if(action == "SSOP") {
             QList<QByteArray> parts = string.split('=');
             int                code = parts[0].toInt();
-            char*              cstr = parts[1].data();
+            const char*        cstr = parts[1].constData();
             errchk("zmq_setsockopt",
                     zmq_setsockopt(ps_actual, code, cstr, parts[1].count()));
           }
