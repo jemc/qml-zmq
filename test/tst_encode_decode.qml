@@ -14,25 +14,25 @@ Item {
     ZPull { id:pull; connects:"ipc:///tmp/test" }
     SignalSpy { id:spy; target:pull; signalName:"receive" }
     
-    property var strings: [
-      ["foo\xF3bar", "foo%F3bar"],
-    ]
-    
     function initTestCase() { wait(250) }
     
-    function test_it() {
-      for(var i=0; i<strings.length; i++){
-        var str = strings[i][0]
-        var enc = strings[i][1]
-        
-        compare(ZUtil.convertLatin1ToData(str), enc)
-        compare(ZUtil.convertDataToLatin1(enc), str)
-        
-        spy.clear()
-        push.send(ZUtil.convertLatin1ToData(str))
-        spy.wait()
-        compare(ZUtil.convertDataToLatin1(spy.signalArguments[0][0][0]), str)
-      }
+    function init_data() {
+      return [
+        {source:"foo\xF3bar", encoded:"foo%F3bar"},
+      ]
+    }
+    
+    function test_latin1(data) {
+      var str = data.source
+      var enc = data.encoded
+      
+      compare(ZUtil.convertLatin1ToData(str), enc)
+      compare(ZUtil.convertDataToLatin1(enc), str)
+      
+      spy.clear()
+      push.send(ZUtil.convertLatin1ToData(str))
+      spy.wait()
+      compare(ZUtil.convertDataToLatin1(spy.signalArguments[0][0][0]), str)
     }
   }
 }
