@@ -37,37 +37,33 @@ private:
     void* ps_actual = zmq_socket(zctx->pointer, socketType);
     
     // Make all sockets pollable
-    pollables[0].events = ZMQ_POLLIN;  pollables[0].socket = ps_actual;
-    pollables[1].events = ZMQ_POLLIN;  pollables[1].socket = ps_send;
-    pollables[2].events = ZMQ_POLLIN;  pollables[2].socket = ps_action;
-    pollables[3].events = ZMQ_POLLIN;  pollables[3].socket = ps_kill;
+    pollables[0].events = ZMQ_POLLIN;  pollables[0].socket = ps_kill;
+    pollables[1].events = ZMQ_POLLIN;  pollables[1].socket = ps_action;
+    pollables[2].events = ZMQ_POLLIN;  pollables[2].socket = ps_actual;
+    pollables[3].events = ZMQ_POLLIN;  pollables[3].socket = ps_send;
     
     int not_dead = 1;
     
     while(not_dead) {
-      
       if(zmq_poll(pollables, num_pollables, -1) != -1) {
         
-        if     (pollables[0].revents) { // ps_actual
-          emit receive(recv_array(ps_actual));
-        }
+        // Check which socket is ready to read from and process the message.
+        // Note: the order of if/else checks matters here;
+        //   For example, we want to process binds and connects before sends
         
-        else if(pollables[1].revents) { // ps_send
-          QList<QByteArray> message = recv_bytes_array(ps_send);
-          int flags = message.last().toInt();
-          message.removeLast();
-          
-          int rc = send_bytes_array(ps_actual, message, flags);
-          
-          send_bytes(ps_send, QByteArray::number(rc != -1));
+        // Socket: ps_kill, to kill the current event loop
+        if(pollables[0].revents) {
+          recv_bytes_array(ps_kill); // Clear the incoming message
+          not_dead = 0;
         }
-        
-        else if(pollables[2].revents) { // ps_action
+        // Socket: ps_action, to do action upon actual socket
+        else if(pollables[1].revents) {
           QByteArray action = recv_bytes(ps_action);
           QByteArray string = recv_bytes(ps_action);
           int rc = -1;
           
-          if     (action == "BIND") { rc = zmq_bind      (ps_actual, string.constData()); }
+          if     (action == "NOOP") { rc = 1; }
+          else if(action == "BIND") { rc = zmq_bind      (ps_actual, string.constData()); }
           else if(action == "UNBI") { rc = zmq_unbind    (ps_actual, string.constData()); }
           else if(action == "CONN") { rc = zmq_connect   (ps_actual, string.constData()); }
           else if(action == "DSCN") { rc = zmq_disconnect(ps_actual, string.constData()); }
@@ -79,10 +75,19 @@ private:
           
           send_bytes(ps_action, QByteArray::number(rc != -1));
         }
-        
-        else if(pollables[3].revents) { // ps_kill
-          recv_bytes_array(ps_kill); // Clear the incoming message
-          not_dead = 0;
+        // Socket: ps_actual, to receive from actual socket
+        else if(pollables[2].revents) {
+          emit receive(recv_array(ps_actual));
+        }
+        // Socket: ps_send, to send to actual socket
+        else if(pollables[3].revents) {
+          QList<QByteArray> message = recv_bytes_array(ps_send);
+          int flags = message.last().toInt();
+          message.removeLast();
+          
+          int rc = send_bytes_array(ps_actual, message, flags);
+          
+          send_bytes(ps_send, QByteArray::number(rc != -1));
         }
       }
       else not_dead = 0;
@@ -105,6 +110,7 @@ public slots:
   void start() {
     make_inproc_sockets();
     QThread::start();
+    action("NOOP", ""); // Send an action through the thread to get it going
   }
   
   void stop() {
