@@ -38,29 +38,23 @@ Item {
     }
     
     function test_latin1(data) {
-      var str = data.source
-      var enc = data.encoded
-      
-      compare(ZUtil.convertLatin1ToData(str), enc)
-      compare(ZUtil.convertDataToLatin1(enc), str)
+      compare(ZUtil.convertLatin1ToData(data.source), data.encoded)
+      compare(ZUtil.convertDataToLatin1(data.encoded), data.source)
       
       spy.clear()
-      push.send(ZUtil.convertLatin1ToData(str))
+      push.send(ZUtil.convertLatin1ToData(data.source))
       spy.wait()
-      compare(ZUtil.convertDataToLatin1(spy.signalArguments[0][0][0]), str)
+      compare(ZUtil.convertDataToLatin1(spy.signalArguments[0][0][0]), data.source)
     }
     
     function test_utf8(data) {
-      var str = data.source
-      var enc = data.encoded
-      
-      compare(ZUtil.convertUtf8ToData(str), enc)
-      compare(ZUtil.convertDataToUtf8(enc), str)
+      compare(ZUtil.convertUtf8ToData(data.source), data.encoded)
+      compare(ZUtil.convertDataToUtf8(data.encoded), data.source)
       
       spy.clear()
-      push.send(ZUtil.convertUtf8ToData(str))
+      push.send(ZUtil.convertUtf8ToData(data.source))
       spy.wait()
-      compare(ZUtil.convertDataToUtf8(spy.signalArguments[0][0][0]), str)
+      compare(ZUtil.convertDataToUtf8(spy.signalArguments[0][0][0]), data.source)
     }
   }
 }
