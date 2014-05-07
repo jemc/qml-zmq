@@ -15,6 +15,7 @@ def vendor_build
       configure: {
         CPPFLAGS: "-Wno-long-long",
         APP_STL:  :stlport_static,
+        # configure: '--with-pgm',
       },
     ],
   ]
