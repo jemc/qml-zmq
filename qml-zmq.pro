@@ -51,7 +51,7 @@ QMAKE_POST_LINK += \
 # Copy the libzmq shared library to the plugin folder (on android only)
 android {
   QMAKE_POST_LINK += \
- && $$QMAKE_COPY $$replace($$list($$quote($$VENDORDIR/lib/libzmq.so) $$DESTDIR), /, $$QMAKE_DIR_SEP) \
+ && $$QMAKE_COPY $$replace($$list($$quote($$VENDORDIR/lib/libzmq.so) $$[QT_INSTALL_LIBS]), /, $$QMAKE_DIR_SEP) \
 }
 
 # Copy the qml implementation directory
