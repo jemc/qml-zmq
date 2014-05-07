@@ -1,6 +1,5 @@
 
 require 'qt/commander'
-require 'pp'
 
 task :default => :android
 
