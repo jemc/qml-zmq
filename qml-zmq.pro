@@ -10,10 +10,16 @@ uri = org.jemc.qml.ZMQ
 
 DESTDIR   = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 SRCDIR    = $$PWD/src
-BUILDDIR  = $$PWD/build
-VENDORDIR = $$PWD/vendor/prefix
+BUILDDIR  = $$PWD/build/native
 
-LIBS += -L$$VENDORDIR/lib -lzmq
+android {
+  VENDORDIR = $$PWD/vendor/prefix/$(TOOLCHAIN_NAME)
+  BUILDDIR  = $$PWD/build/$(TOOLCHAIN_NAME)
+  QMAKE_LIBDIR += $$VENDORDIR/lib
+  QMAKE_INCDIR += $$VENDORDIR/include
+}
+
+LIBS += -lzmq
 
 HEADERS += $$SRCDIR/zmqplugin.h                      \
            $$SRCDIR/zmq_helper.h                     \

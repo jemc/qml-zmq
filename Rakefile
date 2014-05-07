@@ -1,19 +1,27 @@
 
-task :default => :test
+require 'qt/commander'
+require 'pp'
+
+task :default => :android
 
 task :vendor do
   require_relative 'vendor/build.rb'
+  
+  Qt::Commander::Creator.profiles
+  .select(&:android?).map(&:toolchain).uniq.each do |toolchain|
+    toolchain.env do
+      vendor_build
+    end
+  end
 end
 
 task :android do
-  QT_ROOT_SET=ENV['QT_ROOT_SET'] # Should be something like $HOME/Qt5.2.0/5.2.0
-  raise "Please set the QT_ROOT_SET environment variable" unless QT_ROOT_SET
-  
-  system "make clean"
-  system "export ANDROID_NDK_TOOLCHAIN_VERSION=4.7"\
-    " && #{ENV['QT_ROOT_SET']}/android_armv7/bin/qmake *.pro -spec android-g++"\
-    " && make"
-  system "make clean"
+  Qt::Commander::Creator.profiles.select(&:android?).each do |profile|
+    profile.toolchain.env do
+      system "#{profile.version.qmake} *.pro -spec android-g++" and
+      system "make"
+    end
+  end
 end
 
 task :test do
