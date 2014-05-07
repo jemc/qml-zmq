@@ -1,22 +1,23 @@
 
 def vendor_build_env
+  # Each of the following environment variables should be set,
+  # preferably by an automated tool like Qt::Commander::Creator::Toolchain#env
+  [
+    'ANDROID_NDK_ROOT', # eg. "/home/user/android/android-ndk-r9d"
+    'TOOLCHAIN_PATH',   # eg. "/home/user/android/android-ndk-r9d/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86_64/bin"
+    'TOOLCHAIN_NAME',   # eg. "arm-linux-androideabi-4.8"
+    'TOOLCHAIN_HOST',   # eg. "arm-linux-androideabi"
+    'TOOLCHAIN_ARCH',   # eg. "arm"
+  ].each { |x| raise "Please set the #{x} environment variable" unless ENV[x] }
   
   host = ENV['TOOLCHAIN_HOST']
-  raise "Please set the TOOLCHAIN_HOST environment variable" unless host
-  
   arch = ENV['TOOLCHAIN_ARCH']
-  raise "Please set the TOOLCHAIN_ARCH environment variable" unless arch
-  
   ndk_root = ENV['ANDROID_NDK_ROOT']
-  raise "Please set the ANDROID_NDK_ROOT environment variable" unless ndk_root
-  
   toolpath = ENV['TOOLCHAIN_PATH']
-  raise "Please set the TOOLCHAIN_PATH environment variable" unless toolpath
   
   sysroot = "#{ndk_root}/platforms/android-9/arch-#{arch}"
+  prefix_dir = File.join(File.dirname(__FILE__),'prefix/'+ENV['TOOLCHAIN_NAME'])
   
-  raise "Please set the TOOLCHAIN_NAME environment variable" unless ENV['TOOLCHAIN_NAME']
-  prefix_dir = File.join(File.dirname(__FILE__),'prefix/'+ENV['TOOLCHAIN_NAME']) # vendor/prefix
   system "mkdir -p #{prefix_dir}"
   
   _CPP    = "#{host}-cpp"
