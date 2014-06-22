@@ -1,7 +1,7 @@
 
 require 'qt/commander'
 
-task :default => :android
+task :default => :test
 
 task :vendor do
   require_relative 'vendor/build.rb'
