@@ -73,7 +73,7 @@ def vendor_build_env
       " --host=#{host}",
       " --prefix=#{prefix_dir}",
       
-      opts.fetch(:configure, ''),
+      opts.fetch(:other, ''),
     ].join(' ')
   end
   
