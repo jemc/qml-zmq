@@ -16,10 +16,18 @@ public:
   static ZMQ_Context* global() { static ZMQ_Context g; return &g; };
   
   // The libzmq pointer for this context
-  void* pointer;
+  void* pointer = NULL;
   
   ZMQ_Context() { pointer = zmq_ctx_new(); }
-  ~ZMQ_Context() { zmq_ctx_destroy(pointer); }
+  ~ZMQ_Context() { terminate(); }
+  
+public slots:
+  
+  void terminate() {
+    if(pointer) zmq_ctx_destroy(pointer);
+    pointer = NULL;
+  }
+  
 };
 
 #endif

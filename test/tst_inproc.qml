@@ -50,5 +50,11 @@ Item {
       compare(otherpull.lastMessage, ["other","data"])
     }
     
+    function cleanupTestCase() {
+      otherpull.stop()
+      otherpush.stop()
+      otherContext.terminate()
+    }
+    
   }
 }
