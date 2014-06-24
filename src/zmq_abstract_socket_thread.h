@@ -141,7 +141,7 @@ public slots:
     send_array(s_send, message);
     
     int error = recv_bytes(s_send).toInt();
-    if(error)
+    if(error && !(error==EAGAIN && flags&ZMQ_NOBLOCK))
       qWarning()
       << "Error (" << error << ":" << zmq_strerror(error) << ")"
       << "in ZMQ socket:" << this << "."
