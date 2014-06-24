@@ -73,7 +73,7 @@ private:
                                 parts[1].constData(), parts[1].count());
           }
           
-          send_bytes(ps_action, QByteArray::number(rc != -1));
+          send_bytes(ps_action, QByteArray::number((rc!=-1) ? 0 : errno));
         }
         // Socket: ps_actual, to receive from actual socket
         else if(pollables[2].revents) {
@@ -87,10 +87,17 @@ private:
           
           int rc = send_bytes_array(ps_actual, message, flags);
           
-          send_bytes(ps_send, QByteArray::number(rc != -1));
+          send_bytes(ps_send, QByteArray::number((rc!=-1) ? 0 : errno));
         }
       }
-      else not_dead = 0;
+      else {
+        not_dead = 0;
+        
+        qWarning()
+        << "Error (" << errno << ":" << zmq_strerror(errno) << ")"
+        << "in ZMQ socket:" << this << "."
+        << "zmq_poll (" << pollables << "," << num_pollables << "," << -1 <<")";
+      }
     }
     
     zmq_close(ps_actual);
@@ -132,14 +139,30 @@ public slots:
     
     message << QString::number(flags);
     send_array(s_send, message);
-    return recv_bytes(s_send).toInt();
+    
+    int error = recv_bytes(s_send).toInt();
+    if(error)
+      qWarning()
+      << "Error (" << error << ":" << zmq_strerror(error) << ")"
+      << "in ZMQ socket:" << this << "."
+      << "send (" << message << "," << flags << ")";
+    
+    return error == 0;
   }
   
   bool action(const QString& action, const QString& payload) {
     if(s_action == NULL) return 0;
     
     send_array(s_action, (QStringList() << action << payload));
-    return recv_bytes(s_action).toInt();
+    
+    int error = recv_bytes(s_action).toInt();
+    if(error)
+      qWarning()
+      << "Error (" << error << ":" << zmq_strerror(error) << ")"
+      << "in ZMQ socket:" << this << "."
+      << "action (" << action << "," << payload << ")";
+    
+    return error == 0;
   }
   
 private:
