@@ -24,16 +24,11 @@ task :android do
 end
 
 task :test do
-  system "qmake *.pro && make && qmltestrunner"
+  system "qmake *.pro && make && qmlscene test/suite.qml"
 end
 
 task :clean do
   `make clean && rm Makefile`
-end
-
-task :testone do
-  testname = "ZReq,ZRouter::test_messages"
-  system "qmake *.pro && make && qmltestrunner #{testname}"
 end
 
 task :cleantest => [:clean, :test]

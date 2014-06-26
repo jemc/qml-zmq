@@ -1,6 +1,6 @@
 
-import QtTest 1.0
 import QtQuick 2.1
+import QmlSpec 1.0
 
 import org.jemc.qml.ZMQ 1.0
 
@@ -39,43 +39,6 @@ Item {
     
     function initTestCase() { wait(250) }
     
-    function test_messages() {
-      pub.send(["topic.x.y","message"])
-      wait(50)
-      compare(sub.lastMessage, ["topic.x.y","message"])
-      
-      pub.send(["topic.zzz","message2"])
-      wait(50)
-      compare(sub.lastMessage, ["topic.zzz","message2"])
-      
-      sub.unsubscribe("topic")
-      sub.lastMessage = []
-      wait(50)
-      pub.send(["topic.aaa","message3"])
-      wait(50)
-      compare(sub.lastMessage, [])
-      
-      sub.subscribe("topic")
-      sub.lastMessage = []
-      wait(50)
-      pub.send(["topic.b.c","message4"])
-      wait(50)
-      compare(sub.lastMessage, ["topic.b.c","message4"])
-    }
-    
-    function test_subscription_message() {
-      wait(250)
-      compare(pub.lastSubscription, ["%01topic"])
-      
-      sub.subscribe("other")
-      wait(50)
-      compare(pub.lastSubscription, ["%01other"])
-      
-      sub.unsubscribe("other")
-      wait(50)
-      compare(pub.lastSubscription, ["%00other"])
-    }
-    
     function test_00_subscriptions() { // This test must run first
       compare(sub.subscriptions, ["topic"])
       compare(sub.subCount, 1)
@@ -111,6 +74,43 @@ Item {
       compare(sub.subCount, 3)
       compare(sub.unsubCount, 2)
       compare(sub.lastUnsubscription, "other2")
+    }
+    
+    function test_messages() {
+      pub.send(["topic.x.y","message"])
+      wait(50)
+      compare(sub.lastMessage, ["topic.x.y","message"])
+      
+      pub.send(["topic.zzz","message2"])
+      wait(50)
+      compare(sub.lastMessage, ["topic.zzz","message2"])
+      
+      sub.unsubscribe("topic")
+      sub.lastMessage = []
+      wait(50)
+      pub.send(["topic.aaa","message3"])
+      wait(50)
+      compare(sub.lastMessage, [])
+      
+      sub.subscribe("topic")
+      sub.lastMessage = []
+      wait(50)
+      pub.send(["topic.b.c","message4"])
+      wait(50)
+      compare(sub.lastMessage, ["topic.b.c","message4"])
+    }
+    
+    function test_subscription_message() {
+      wait(250)
+      compare(pub.lastSubscription, ["%01topic"])
+      
+      sub.subscribe("other")
+      wait(50)
+      compare(pub.lastSubscription, ["%01other"])
+      
+      sub.unsubscribe("other")
+      wait(50)
+      compare(pub.lastSubscription, ["%00other"])
     }
   }
 }

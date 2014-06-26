@@ -1,6 +1,6 @@
 
-import QtTest 1.0
 import QtQuick 2.1
+import QmlSpec 1.0
 
 import org.jemc.qml.ZMQ 1.0
 
@@ -10,8 +10,8 @@ Item {
     id: test
     name: "encode_decode"
     
-    ZPush { id:push; binds:"ipc:///tmp/test" }
-    ZPull { id:pull; connects:"ipc:///tmp/test" }
+    ZPush { id:push; binds:   "inproc://encode_decode_test" }
+    ZPull { id:pull; connects:"inproc://encode_decode_test" }
     SignalSpy { id:spy; target:pull; signalName:"receive" }
     
     function test_latin1_data() {

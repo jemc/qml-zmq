@@ -1,6 +1,6 @@
 
-import QtTest 1.0
 import QtQuick 2.1
+import QmlSpec 1.0
 
 import org.jemc.qml.ZMQ 1.0
 
