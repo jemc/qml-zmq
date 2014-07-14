@@ -1,12 +1,16 @@
 module org.jemc.qml.ZMQ
+
 plugin zmqplugin
-ZPush   1.0 qml/ZPush.qml
-ZPull   1.0 qml/ZPull.qml
-ZReq    1.0 qml/ZReq.qml
-ZRep    1.0 qml/ZRep.qml
-ZDealer 1.0 qml/ZDealer.qml
-ZRouter 1.0 qml/ZRouter.qml
-ZPub    1.0 qml/ZPub.qml
-ZSub    1.0 qml/ZSub.qml
-ZXPub   1.0 qml/ZXPub.qml
-ZXSub   1.0 qml/ZXSub.qml
+
+singleton  ZContextDefault  1.0  qml/ZContextDefault.qml
+
+ZPush    1.0  qml/ZPush.qml
+ZPull    1.0  qml/ZPull.qml
+ZReq     1.0  qml/ZReq.qml
+ZRep     1.0  qml/ZRep.qml
+ZDealer  1.0  qml/ZDealer.qml
+ZRouter  1.0  qml/ZRouter.qml
+ZPub     1.0  qml/ZPub.qml
+ZSub     1.0  qml/ZSub.qml
+ZXPub    1.0  qml/ZXPub.qml
+ZXSub    1.0  qml/ZXSub.qml

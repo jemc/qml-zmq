@@ -12,22 +12,18 @@ class ZMQ_Context : public QObject
   Q_OBJECT
   
 public:
-  // Access a static "global" context for default use
-  static ZMQ_Context* global() { static ZMQ_Context g; return &g; };
   
   // The libzmq pointer for this context
   void* pointer = NULL;
   
-  ZMQ_Context() { pointer = zmq_ctx_new(); }
-  ~ZMQ_Context() { terminate(); }
+  ZMQ_Context() {
+    pointer = zmq_ctx_new();
+  };
   
-public slots:
-  
-  void terminate() {
+  ~ZMQ_Context() {
     if(pointer) zmq_ctx_destroy(pointer);
     pointer = NULL;
-  }
-  
+  };
 };
 
 #endif

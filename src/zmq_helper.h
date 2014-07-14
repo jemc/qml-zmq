@@ -54,12 +54,12 @@ protected:
   }
   
   QByteArray recv_bytes(void* socket) {
-    QByteArray bytes;
     zmq_msg_t msg;
     
     errchk("recv_bytes, zmq_msg_init", zmq_msg_init(&msg));
     errchk("recv_bytes, zmq_recvmsg", zmq_recvmsg(socket, &msg, 0));
-    bytes = QByteArray((char*)zmq_msg_data(&msg), zmq_msg_size(&msg));
+    
+    QByteArray bytes((char*)zmq_msg_data(&msg), zmq_msg_size(&msg));
     
     errchk("recv_bytes, zmq_msg_close", zmq_msg_close(&msg));
     

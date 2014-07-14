@@ -53,7 +53,6 @@ Item {
     function cleanupTestCase() {
       otherpull.stop()
       otherpush.stop()
-      otherContext.terminate()
     }
     
   }

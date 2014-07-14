@@ -30,6 +30,7 @@ private:
   
   void run() Q_DECL_OVERRIDE {
     
+    int rc = -1;
     int num_pollables = 4;
     zmq_pollitem_t pollables[num_pollables];
     
@@ -60,7 +61,7 @@ private:
         else if(pollables[1].revents) {
           QByteArray action = recv_bytes(ps_action);
           QByteArray string = recv_bytes(ps_action);
-          int rc = -1;
+          rc = -1;
           
           if     (action == "NOOP") { rc = 1; }
           else if(action == "BIND") { rc = zmq_bind      (ps_actual, string.constData()); }
@@ -85,7 +86,7 @@ private:
           int flags = message.last().toInt();
           message.removeLast();
           
-          int rc = send_bytes_array(ps_actual, message, flags);
+          rc = send_bytes_array(ps_actual, message, flags);
           
           send_bytes(ps_send, QByteArray::number((rc!=-1) ? 0 : errno));
         }
@@ -197,8 +198,8 @@ private:
     zmq_bind  (ps_kill, "inproc://s_kill");
     zmq_connect(s_kill, "inproc://s_kill");
     
-    // Use default global context for actual socket unless another was given
-    if(zctx == NULL) zctx = ZMQ_Context::global();
+    // Warn if no context was given
+    if(zctx == NULL) qWarning() << "No ZContext given for" << this;
   }
   
   void destroy_inproc_sockets() {

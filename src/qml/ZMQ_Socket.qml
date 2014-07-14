@@ -6,6 +6,7 @@ import org.jemc.qml.ZMQ 1.0
 
 ZMQ_AbstractSocket {
   id: socket
+  context: ZContextDefault
   
   Component.onCompleted: {
     start()
