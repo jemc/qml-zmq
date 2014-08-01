@@ -8,6 +8,9 @@ ZMQ_AbstractSocket {
   id: socket
   context: ZContextDefault
   
+  signal receive(var message)
+  onReceivePrivate: receive(Array.prototype.slice.call(message))
+  
   Component.onCompleted: {
     start()
     _bind_tracker.reapply()

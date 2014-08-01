@@ -22,7 +22,7 @@ Item {
       id: req
       connects: "ipc:///tmp/test"
       
-      property var lastReply:   []
+      property var lastReply: []
       onReceive: lastReply = message
       
       property var lastSent: undefined
@@ -42,6 +42,13 @@ Item {
       req.send(["multi","part","message"])
       wait(100)
       compare(req.lastReply, ["multi","part","message"])
+    }
+    
+    function test_messageIsRealArray() {
+      wait(100)
+      req.send(["multi","part","message"])
+      wait(100)
+      compare(JSON.stringify(req.lastReply), '["multi","part","message"]')
     }
     
     function test_binds() {
@@ -71,7 +78,7 @@ Item {
       rep.connects = []
       compare(rep.connects, [])
     }
-
+    
     function test_onSendCalled() {
       req.send(["the","message"])
       compare(req.lastSent, ["the","message"])

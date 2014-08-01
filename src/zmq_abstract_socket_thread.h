@@ -78,7 +78,7 @@ private:
         }
         // Socket: ps_actual, to receive from actual socket
         else if(pollables[2].revents) {
-          emit receive(recv_array(ps_actual));
+          emit receivePrivate(recv_array(ps_actual));
         }
         // Socket: ps_send, to send to actual socket
         else if(pollables[3].revents) {
@@ -108,7 +108,7 @@ private:
   
 signals:
   
-  void receive(const QStringList& message);
+  void receivePrivate(const QStringList& message);
   void sendCalled(const QStringList& message);
   
   void socketTypeChanged();
