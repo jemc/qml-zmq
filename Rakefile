@@ -23,8 +23,12 @@ task :android do
   end
 end
 
-task :test do
-  system "qmake *.pro && make && qmlscene test/suite.qml"
+task :install do
+  system "qmake *.pro && make"
+end
+
+task :test => :install do
+  system "qmlscene test/suite.qml"
 end
 
 task :clean do
