@@ -1,6 +1,6 @@
 module org.jemc.qml.ZMQ
 
-plugin zmqplugin
+plugin qml-zmq
 
 singleton  ZContextDefault  1.0  qml/ZContextDefault.qml
 
